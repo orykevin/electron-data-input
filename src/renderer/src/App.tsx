@@ -1,47 +1,45 @@
-import { useEffect, useState } from "react"
-import { database } from "./db"
-import { posts } from "../../db/schema"
+import { useEffect, useState } from 'react'
+import { database } from './db'
+import Main from './page/main'
 
 function App(): JSX.Element {
-
   const [postList, setPosts] = useState([] as any[])
 
   useEffect(() => {
-    database.query.posts.findMany().then(result => {
+    database.query.posts.findMany().then((result) => {
       setPosts(result)
     })
   }, [])
 
   return (
     <div>
-      <div>
-        <form onSubmit={async e => {
-          e.preventDefault()
+      <Main />
+      {/* <div>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault()
 
-          const formData = new FormData(e.target as HTMLFormElement)
-          const title = formData.get('title') as string
-          if (title) {
-            await database.insert(posts).values({
-              id: Math.floor(Math.random() * 1000),
-              title
-            })
+            const formData = new FormData(e.target as HTMLFormElement)
+            const title = formData.get('title') as string
+            if (title) {
+              await database.insert(posts).values({
+                id: Math.floor(Math.random() * 1000),
+                title
+              })
 
-            // refetch
-            const result = await database.query.posts.findMany()
-            setPosts(result)
-          }
-        }}>
+              // refetch
+              const result = await database.query.posts.findMany()
+              setPosts(result)
+            }
+          }}
+        >
           <input name="title" type="text" placeholder="title" />
-          <button>add</button>
+          <Button className="text-lg">add 1</Button>
         </form>
       </div>
-      {postList.map(post => {
-        return (
-          <div key={post.id}>
-            {post.title}
-          </div>
-        )
-      })}
+      {postList.map((post) => {
+        return <div key={post.id}>{post.title} list</div>
+      })} */}
     </div>
   )
 }

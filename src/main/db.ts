@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
-import * as schema from '../db/schema'
+import * as schema from '../db/schema/barang'
 import fs from 'fs'
 import { app } from 'electron'
 import path from 'path'
@@ -10,9 +10,8 @@ const dbPath = import.meta.env.DEV ? 'sqlite.db' : path.join(app.getPath('userDa
 
 fs.mkdirSync(path.dirname(dbPath), { recursive: true })
 
-const sqlite = new Database(
-  dbPath
-)
+const sqlite = new Database(dbPath)
+sqlite.exec('PRAGMA foreign_keys = ON;')
 
 export const db = drizzle(sqlite, { schema })
 
@@ -31,13 +30,19 @@ function toDrizzleResult(rows: Record<string, any> | Array<Record<string, any>>)
 }
 
 export const execute = async (e, sqlstr, params, method) => {
+  console.log(e)
   const result = sqlite.prepare(sqlstr)
   const ret = result[method](...params)
   return toDrizzleResult(ret)
 }
 
 export const runMigrate = async () => {
-  migrate(db, {
-    migrationsFolder: path.join(__dirname, '../../drizzle')
-  })
+  try {
+    await migrate(db, {
+      migrationsFolder: path.join(__dirname, '../../drizzle')
+    })
+    console.log('Migration successful!')
+  } catch (error) {
+    console.error('Migration failed:', error)
+  }
 }
