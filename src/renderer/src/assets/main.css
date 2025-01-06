@@ -135,6 +135,11 @@ code {
   }
 }
 
+.rg-cell-nonEditable {
+  background-color: #f3f3f3;
+  opacity: 0.9;
+}
+
 @media (max-width: 720px) {
   .text {
     font-size: 20px;
