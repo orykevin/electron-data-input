@@ -10,96 +10,138 @@ import {
   SelectionMode
 } from '@silevis/reactgrid'
 import '@silevis/reactgrid/styles.css'
+import { DataBarang } from '@/dbFunctions/barang'
+import { formatWithThousandSeparator } from '@/lib/utils'
+import { EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
 
-interface RowData {
-  no: number
-  kode: string
-  nama: string
-  harga: number
-  supplier: string
-  hargaLain: string
-  hargaOpen: boolean
+type DataBarangFull = DataBarang[number] & {
+  hargaLainId: string | undefined
+  hargaLainOpen: boolean | undefined
+  selectedUnitId: string | undefined
+  selectedUnitOpen: boolean | undefined
 }
 
-interface ColumnMap {
-  no: 'No.'
-  kode: 'Kode'
-  nama: 'Nama'
-  harga: 'Harga'
-  supplier: 'Supplier'
-  hargaLain: 'Harga Lain'
+type Props = {
+  barangs: DataBarang
+  isEditable: boolean
 }
 
-const columnMap: ColumnMap = {
-  no: 'No.',
+const columnMap = {
   kode: 'Kode',
   nama: 'Nama',
+  unit: 'Unit',
+  modal: 'Modal',
   harga: 'Harga',
-  supplier: 'Supplier',
-  hargaLain: 'Harga Lain'
+  hargaLain: 'Harga Lain',
+  stockAwal: 'Stock Awal',
+  masuk: 'Masuk',
+  keluar: 'Keluar',
+  stockAkhir: 'Stock Akhir',
+  editBarang: ''
 }
 
-type ColumnId = keyof ColumnMap
+type ColumnId = keyof typeof columnMap
 
-const getData = (): RowData[] =>
-  Array.from({ length: 100 }, (_, i) => i + 1).map((no) => ({
-    no,
-    kode: 'A-' + no,
-    nama: 'Budi',
-    harga: 100000,
-    supplier: 'Test supp',
-    hargaLain: '',
-    hargaOpen: false
-  }))
+// const getData = (): RowData[] =>
+//   Array.from({ length: 100 }, (_, i) => i + 1).map((no) => ({
+//     no,
+//     kode: 'A-' + no,
+//     nama: 'Budi',
+//     harga: 100000,
+//     supplier: 'Test supp',
+//     hargaLain: '',
+//     hargaOpen: false
+//   }))
 
 const getColumns = (): Column[] => [
-  { columnId: 'no', width: 40 },
-  { columnId: 'kode', width: 150, resizable: true, reorderable: true },
+  { columnId: 'kode', width: 80, resizable: true, reorderable: true },
   { columnId: 'nama', width: 300, resizable: true, reorderable: true },
-  { columnId: 'harga', width: 200, resizable: true, reorderable: true },
-  { columnId: 'supplier', width: 200, resizable: true, reorderable: true },
-  { columnId: 'hargaLain', width: 200, resizable: true, reorderable: true }
+  { columnId: 'unit', width: 80, resizable: true, reorderable: true },
+  { columnId: 'modal', width: 120, resizable: true, reorderable: true },
+  { columnId: 'harga', width: 120, resizable: true, reorderable: true },
+  { columnId: 'hargaLain', width: 120, resizable: true, reorderable: true },
+  { columnId: 'stockAwal', width: 100, resizable: true, reorderable: true },
+  { columnId: 'masuk', width: 75, resizable: true, reorderable: true },
+  { columnId: 'keluar', width: 75, resizable: true, reorderable: true },
+  { columnId: 'stockAkhir', width: 100, resizable: true, reorderable: true },
+  { columnId: 'editBarang', width: 40, resizable: true, reorderable: true }
 ]
 
 const typesRow = {
-  no: 'number',
   kode: 'text',
   nama: 'text',
+  modal: 'number',
+  unit: 'dropdown',
   harga: 'number',
-  supplier: 'text',
-  hargaLain: 'dropdown'
+  hargaLain: 'dropdown',
+  stockAwal: 'number',
+  masuk: 'number',
+  keluar: 'number',
+  stockAkhir: 'number',
+  editBarang: 'edit'
 }
 
-const getRows = (data: RowData[], columnsOrder: ColumnId[], disabled?: boolean): Row[] => [
+const getDataRow = (data: DataBarangFull, columnId: ColumnId) => {
+  const unitSelect = data.unitBarang.find((u) => u.unit?.id === Number(data.selectedUnitId))
+  const unitOptions = data.unitBarang.map((u) => ({
+    label: u.unit?.unit,
+    value: u.unit?.id.toString()
+  }))
+  const hargaLainOptions = unitSelect?.unit?.hargaLain.map((h) => ({
+    label: formatWithThousandSeparator(h.harga),
+    value: h.id.toString()
+  }))
+
+  switch (columnId) {
+    case 'kode':
+      return { text: data.kode }
+    case 'nama':
+      return { text: data.nama }
+    case 'unit':
+      return {
+        selectedValue: data.selectedUnitId,
+        values: unitOptions,
+        isOpen: data.selectedUnitOpen
+      }
+    case 'modal':
+      return { value: data.modal }
+    case 'harga':
+      return {
+        value: unitSelect?.unit?.harga[0]?.harga || 0
+      }
+    case 'hargaLain':
+      return {
+        selectedValue: data.hargaLainId,
+        values: hargaLainOptions,
+        isOpen: data.hargaLainOpen
+      }
+    case 'stockAwal':
+      return { value: data.stockAwal }
+    case 'masuk':
+      return { value: 0, nonEditable: true }
+    case 'keluar':
+      return { value: 0, nonEditable: true }
+    case 'stockAkhir':
+      return { value: 0, nonEditable: true }
+    case 'editBarang':
+      return { text: data.id.toString(), openedId: 0 }
+    default:
+      return {}
+  }
+}
+
+const getRows = (data: DataBarangFull[], columnsOrder: ColumnId[], disabled?: boolean): Row[] => [
   {
     rowId: 'header',
     cells: columnsOrder.map((columnId) => ({ type: 'header', text: columnMap[columnId] }))
   },
   ...data.map<Row>((data, idx) => ({
-    rowId: data.no,
+    rowId: data.id,
     reorderable: true,
     cells: columnsOrder.map((columnId) => ({
-      nonEditable: columnId === 'no' ? true : disabled ? true : false,
       type: typesRow[columnId],
-      ...(typesRow[columnId] === 'number'
-        ? { value: data[columnId] }
-        : typesRow[columnId] === 'text'
-          ? { text: data[columnId] }
-          : typesRow[columnId] === 'dropdown'
-            ? {
-                values: [
-                  { label: `${idx + 1}`, value: `${idx + 1}` },
-                  { label: `${idx + 2}`, value: `${idx + 2}` }
-                ]
-              }
-            : null),
-      ...(typesRow[columnId] === 'dropdown'
-        ? {
-            selectedValue: data.hargaLain,
-            isDisabled: false,
-            isOpen: data.hargaOpen
-          }
-        : {})
+      nonEditable: disabled,
+      ...getDataRow(data, columnId)
     })) as DefaultCellTypes[]
   }))
 ]
@@ -113,12 +155,23 @@ const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
   return [...leftSide, ...movedElements, ...rightSide]
 }
 
-const TableBarang = ({ isEditable }: { isEditable: boolean }) => {
-  const [data, setData] = React.useState<RowData[]>(getData())
+const TableBarang = ({ isEditable, barangs }: Props) => {
+  const [data, setData] = React.useState<DataBarangFull[]>([])
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
 
   const [cellChangesIndex, setCellChangesIndex] = React.useState(() => -1)
   const [cellChanges, setCellChanges] = React.useState<CellChange[][]>(() => [])
+
+  React.useEffect(() => {
+    const newData = barangs.map((barang) => ({
+      ...barang,
+      hargaLainId: barang.unitBarang[0]?.unit?.hargaLain[0].id.toString(),
+      hargaLainOpen: false,
+      selectedUnitId: barang.unitBarang[0]?.unit?.id.toString(),
+      selectedUnitOpen: false
+    }))
+    setData(newData)
+  }, [barangs])
 
   const rows = getRows(
     data,
@@ -128,22 +181,40 @@ const TableBarang = ({ isEditable }: { isEditable: boolean }) => {
 
   const applyNewValue = (
     changes: CellChange[],
-    prevData: RowData[],
+    prevData: DataBarangFull[],
     usePrevValue: boolean = false
-  ): RowData[] => {
+  ): DataBarangFull[] => {
     changes.forEach((change) => {
       const dataIndex = change.rowId
-      const fieldName = change.columnId
+      const columnId = change.columnId
+
+      let fieldName: string | null
+      let openField: string | null
+
+      switch (columnId) {
+        case 'unit':
+          openField = 'selectedUnitOpen'
+          fieldName = 'selectedUnitId'
+          break
+        case 'hargaLain':
+          openField = 'hargaLainOpen'
+          fieldName = 'hargaLainId'
+          break
+        default:
+          fieldName = columnId as string
+          break
+      }
+
       const cell = usePrevValue ? change.previousCell : change.newCell
-      console.log(change)
       // prevData[dataIndex][fieldName] =
       //   cell.type === 'text' ? cell.text : cell.type === 'number' ? cell.value : 'test'
-      let dataRow = prevData.find((d) => d.no === dataIndex)
+      let dataRow = prevData.find((d) => d.id === dataIndex)
       if (!dataRow) {
         // dataRow = getEmptyDataRow();
         // prevDetails.push(dataRow);
         return
       }
+      console.log(change, 'change')
       if (change.type === 'text' && typeof dataRow[fieldName] === 'string') {
         dataRow[fieldName] = change.newCell.text as never
       } else if (change.type === 'number' && typeof dataRow[fieldName] === 'number') {
@@ -157,10 +228,18 @@ const TableBarang = ({ isEditable }: { isEditable: boolean }) => {
           change.newCell.selectedValue !== change.previousCell.selectedValue
         ) {
           dataRow[fieldName] = change.newCell.selectedValue as never
+          if (fieldName === 'selectedUnitId') {
+            const defaultHargaLain =
+              dataRow.unitBarang
+                .find((ub) => ub?.unit?.id.toString() === change.newCell.selectedValue)
+                ?.unit?.hargaLain[0]?.id.toString() || '0'
+            // ?.unit.hargaLain[0]?.id.toString() || '0'
+            dataRow.hargaLainId = defaultHargaLain
+          }
         }
         // dataRow[fieldName] = change.newCell.inputValue as never
         // CHANGED: set the isOpen property to the value received.
-        dataRow.hargaOpen = change.newCell.isOpen as never
+        dataRow[openField!] = change.newCell.isOpen as never
       } else {
         console.log('ERROR', change.type, dataRow[fieldName])
       }
@@ -168,7 +247,10 @@ const TableBarang = ({ isEditable }: { isEditable: boolean }) => {
     return [...prevData]
   }
 
-  const applyChangesToData = (changes: CellChange[], prevData: RowData[]): RowData[] => {
+  const applyChangesToData = (
+    changes: CellChange[],
+    prevData: DataBarangFull[]
+  ): DataBarangFull[] => {
     const updated = applyNewValue(changes, prevData)
     setCellChanges([...cellChanges.slice(0, cellChangesIndex + 1), changes])
     setCellChangesIndex(cellChangesIndex + 1)
@@ -199,8 +281,8 @@ const TableBarang = ({ isEditable }: { isEditable: boolean }) => {
 
   const handleRowsReorder = (targetRowId: Id, rowIds: Id[]) => {
     setData((prevData) => {
-      const to = data.findIndex((data) => data.no === targetRowId)
-      const rowsIds = rowIds.map((id) => data.findIndex((data) => data.no === id))
+      const to = data.findIndex((data) => data.id === targetRowId)
+      const rowsIds = rowIds.map((id) => data.findIndex((data) => data.id === id))
       return reorderArray(prevData, rowsIds, to)
     })
   }
@@ -228,13 +310,13 @@ const TableBarang = ({ isEditable }: { isEditable: boolean }) => {
     return menuOptions
   }
 
-  const undoChanges = (changes: CellChange[], prevData: RowData[]): RowData[] => {
+  const undoChanges = (changes: CellChange[], prevData: DataBarangFull[]): DataBarangFull[] => {
     const updated = applyNewValue(changes, prevData, true)
     setCellChangesIndex(cellChangesIndex - 1)
     return updated
   }
 
-  const redoChanges = (changes: CellChange[], prevData: RowData[]): RowData[] => {
+  const redoChanges = (changes: CellChange[], prevData: DataBarangFull[]): DataBarangFull[] => {
     const updated = applyNewValue(changes, prevData)
     setCellChangesIndex(cellChangesIndex + 1)
     return updated
@@ -278,6 +360,7 @@ const TableBarang = ({ isEditable }: { isEditable: boolean }) => {
         enableRowSelection
         enableColumnSelection
         stickyTopRows={1}
+        customCellTemplates={{ edit: new EditTemplateCell() }}
       />
     </div>
   )
