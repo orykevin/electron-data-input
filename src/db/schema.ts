@@ -12,7 +12,7 @@ import { relations } from 'drizzle-orm'
 // barang
 
 export const barang = sqliteTable('barang', {
-  id: int('id').primaryKey().default(0),
+  id: int('id').primaryKey({ autoIncrement: true }),
   kode: text('kode').notNull().default(''),
   nama: text('nama').notNull().default(''),
   modal: int('modal').notNull().default(0),
@@ -21,41 +21,30 @@ export const barang = sqliteTable('barang', {
 })
 
 export const unit = sqliteTable('unit', {
-  id: int('id').primaryKey().default(0),
+  id: int('id').primaryKey({ autoIncrement: true }),
   unit: text('unit').notNull().default(''),
   jumlah: int('jumlah').notNull().default(1),
   deskripsi: text('deskripsi'),
   ...timeStampRow
 })
 
-export const unitBarang = sqliteTable(
-  'unit_barang',
-  {
-    barangId: int('barangId').references((): AnySQLiteColumn => barang.id),
-    unitId: int('unitId').references((): AnySQLiteColumn => unit.id)
-  },
-  (t) => ({ relation: primaryKey({ columns: [t.barangId, t.unitId] }) })
-)
+export const unitBarang = sqliteTable('unit_barang', {
+  id: int('id').primaryKey({ autoIncrement: true }),
+  barangId: int('barangId').references((): AnySQLiteColumn => barang.id),
+  unitId: int('unitId').references((): AnySQLiteColumn => unit.id)
+})
 
-export const harga = sqliteTable(
-  'harga',
-  {
-    id: int('id').primaryKey().default(0),
-    barangId: int('barangId').references((): AnySQLiteColumn => barang.id),
-    unitId: int('unitId').references((): AnySQLiteColumn => unit.id),
-    harga: int('harga').notNull().default(0),
-    persen: int('persen'),
-    deskripsi: text('deskripsi')
-  },
-  (t) => ({
-    relation: unique('harga_utama').on(t.barangId, t.unitId)
-  })
-)
+export const harga = sqliteTable('harga', {
+  id: int('id').primaryKey({ autoIncrement: true }),
+  unitBarangId: int('unitBarangId').references((): AnySQLiteColumn => unitBarang.id),
+  harga: int('harga').notNull().default(0),
+  persen: int('persen'),
+  deskripsi: text('deskripsi')
+})
 
 export const hargaLain = sqliteTable('harga_lain', {
-  id: int('id').primaryKey().default(0),
-  barangId: int('barangId').references((): AnySQLiteColumn => barang.id),
-  unitId: int('unitId').references((): AnySQLiteColumn => unit.id),
+  id: int('id').primaryKey({ autoIncrement: true }),
+  unitBarangId: int('unitBarangId').references((): AnySQLiteColumn => unitBarang.id),
   harga: int('harga').notNull().default(0),
   persen: int('persen'),
   deskripsi: text('deskripsi')
@@ -64,37 +53,42 @@ export const hargaLain = sqliteTable('harga_lain', {
 export const barangRelations = relations(barang, ({ many }) => ({
   // supplier: one(supplier, { fields: [barang.supplierId], references: [supplier.id] }),
   // unit: one(unit, { fields: [barang.unitId], references: [unit.id] }),
-  unitBarang: many(unitBarang),
-  harga: many(harga),
-  hargaLain: many(hargaLain)
+  unitBarang: many(unitBarang)
 }))
 
 export const unitRelations = relations(unit, ({ many }) => ({
   // barang: many(barang),
-  unitBarang: many(unitBarang),
-  harga: many(harga),
+  unitBarang: many(unitBarang)
+}))
+
+export const unitBarangRelations = relations(unitBarang, ({ one, many }) => ({
+  barang: one(barang, {
+    fields: [unitBarang.barangId],
+    references: [barang.id]
+  }),
+  unit: one(unit, {
+    fields: [unitBarang.unitId],
+    references: [unit.id]
+  }),
+  harga: one(harga, {
+    fields: [unitBarang.id],
+    references: [harga.unitBarangId]
+  }),
   hargaLain: many(hargaLain)
 }))
 
-export const unitBarangRelations = relations(unitBarang, ({ one }) => ({
-  barang: one(barang, { fields: [unitBarang.barangId], references: [barang.id] }),
-  unit: one(unit, { fields: [unitBarang.unitId], references: [unit.id] })
-}))
-
 export const hargaRelations = relations(harga, ({ one }) => ({
-  barang: one(barang, { fields: [harga.barangId], references: [barang.id] }),
-  unit: one(unit, { fields: [harga.unitId], references: [unit.id] })
+  unitBarang: one(unitBarang, { fields: [harga.unitBarangId], references: [unitBarang.id] })
 }))
 
 export const hargaLainRelations = relations(hargaLain, ({ one }) => ({
-  barang: one(barang, { fields: [hargaLain.barangId], references: [barang.id] }),
-  unit: one(unit, { fields: [hargaLain.unitId], references: [unit.id] })
+  unitBarang: one(unitBarang, { fields: [hargaLain.unitBarangId], references: [unitBarang.id] })
 }))
 
 //supplier
 
 export const supplier = sqliteTable('supplier', {
-  id: int('id').primaryKey().default(0),
+  id: int('id').primaryKey({ autoIncrement: true }),
   kode: text('kode'),
   nama: text('nama').notNull().default(''),
   deskripsi: text('deskripsi'),

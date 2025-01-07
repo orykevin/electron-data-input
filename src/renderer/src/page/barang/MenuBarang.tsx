@@ -8,10 +8,11 @@ import FormBarang from './FormBarang'
 type Props = {
   setEditable?: React.Dispatch<SetStateAction<boolean>>
   setBarangs: React.Dispatch<SetStateAction<DataBarang | []>>
+  setSearchBarangs: React.Dispatch<SetStateAction<DataBarang | []>>
   barangs: DataBarang
 }
 
-const MenuBarang = ({ setEditable, barangs, setBarangs }: Props) => {
+const MenuBarang = ({ setEditable, barangs, setBarangs, setSearchBarangs }: Props) => {
   const [searchKode, setSearchKode] = useState('')
   const [searchNama, setSearchNama] = useState('')
   const debounceSearchKode = useDebounce(searchKode, 250)
@@ -55,7 +56,7 @@ const MenuBarang = ({ setEditable, barangs, setBarangs }: Props) => {
 
   return (
     <div className="pt-2 pb-4">
-      <FormBarang />
+      <FormBarang setBarangs={setBarangs} setSearchBarangs={setSearchBarangs} />
       <div className="flex justify-between items-center">
         <div className="flex gap-3">
           <div>

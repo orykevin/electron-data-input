@@ -12,7 +12,7 @@ import {
 import '@silevis/reactgrid/styles.css'
 import { DataBarang } from '@/dbFunctions/barang'
 import { formatWithThousandSeparator } from '@/lib/utils'
-import { EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
+import { EditCell, EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
 
 type DataBarangFull = DataBarang[number] & {
   hargaLainId: string | undefined
@@ -24,6 +24,7 @@ type DataBarangFull = DataBarang[number] & {
 type Props = {
   barangs: DataBarang
   isEditable: boolean
+  setSelectedBarangId: React.Dispatch<React.SetStateAction<number | null>>
 }
 
 const columnMap = {
@@ -87,7 +88,7 @@ const getDataRow = (data: DataBarangFull, columnId: ColumnId) => {
     label: u.unit?.unit,
     value: u.unit?.id.toString()
   }))
-  const hargaLainOptions = unitSelect?.unit?.hargaLain.map((h) => ({
+  const hargaLainOptions = unitSelect?.hargaLain.map((h) => ({
     label: formatWithThousandSeparator(h.harga),
     value: h.id.toString()
   }))
@@ -107,12 +108,12 @@ const getDataRow = (data: DataBarangFull, columnId: ColumnId) => {
       return { value: data.modal }
     case 'harga':
       return {
-        value: unitSelect?.unit?.harga[0]?.harga || 0
+        value: unitSelect?.harga?.harga || 0
       }
     case 'hargaLain':
       return {
         selectedValue: data.hargaLainId,
-        values: hargaLainOptions,
+        values: hargaLainOptions || [],
         isOpen: data.hargaLainOpen
       }
     case 'stockAwal':
@@ -155,7 +156,7 @@ const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
   return [...leftSide, ...movedElements, ...rightSide]
 }
 
-const TableBarang = ({ isEditable, barangs }: Props) => {
+const TableBarang = ({ isEditable, barangs, setSelectedBarangId }: Props) => {
   const [data, setData] = React.useState<DataBarangFull[]>([])
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
 
@@ -165,13 +166,15 @@ const TableBarang = ({ isEditable, barangs }: Props) => {
   React.useEffect(() => {
     const newData = barangs.map((barang) => ({
       ...barang,
-      hargaLainId: barang.unitBarang[0]?.unit?.hargaLain[0].id.toString(),
+      hargaLainId: barang.unitBarang[0]?.hargaLain[0]?.id.toString() || '',
       hargaLainOpen: false,
       selectedUnitId: barang.unitBarang[0]?.unit?.id.toString(),
       selectedUnitOpen: false
     }))
     setData(newData)
   }, [barangs])
+
+  console.log(barangs, 'barangs')
 
   const rows = getRows(
     data,
@@ -180,7 +183,7 @@ const TableBarang = ({ isEditable, barangs }: Props) => {
   )
 
   const applyNewValue = (
-    changes: CellChange[],
+    changes: CellChange<DefaultCellTypes | EditCell>[],
     prevData: DataBarangFull[],
     usePrevValue: boolean = false
   ): DataBarangFull[] => {
@@ -232,7 +235,7 @@ const TableBarang = ({ isEditable, barangs }: Props) => {
             const defaultHargaLain =
               dataRow.unitBarang
                 .find((ub) => ub?.unit?.id.toString() === change.newCell.selectedValue)
-                ?.unit?.hargaLain[0]?.id.toString() || '0'
+                ?.hargaLain[0]?.id.toString() || '0'
             // ?.unit.hargaLain[0]?.id.toString() || '0'
             dataRow.hargaLainId = defaultHargaLain
           }
@@ -240,6 +243,8 @@ const TableBarang = ({ isEditable, barangs }: Props) => {
         // dataRow[fieldName] = change.newCell.inputValue as never
         // CHANGED: set the isOpen property to the value received.
         dataRow[openField!] = change.newCell.isOpen as never
+      } else if (change.type === 'edit') {
+        setSelectedBarangId(dataRow.id)
       } else {
         console.log('ERROR', change.type, dataRow[fieldName])
       }
