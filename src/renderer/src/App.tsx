@@ -3,14 +3,6 @@ import { database } from './db'
 import Main from './page/main'
 
 function App(): JSX.Element {
-  const [postList, setPosts] = useState([] as any[])
-
-  useEffect(() => {
-    database.query.posts.findMany().then((result) => {
-      setPosts(result)
-    })
-  }, [])
-
   return (
     <div>
       <Main />

@@ -23,9 +23,9 @@ const MenuBarang = ({ setEditable, barangs, setBarangs, setSearchBarangs }: Prop
       const filtered = barangs.filter((barang) => {
         return barang.kode.toLowerCase().includes(debounceSearchKode.toLowerCase())
       })
-      setBarangs(filtered)
+      setSearchBarangs(filtered)
     } else {
-      setBarangs(barangs)
+      setSearchBarangs(barangs)
     }
   }, [debounceSearchKode])
 
@@ -34,9 +34,9 @@ const MenuBarang = ({ setEditable, barangs, setBarangs, setSearchBarangs }: Prop
       const filtered = barangs.filter((barang) => {
         return barang.nama.toLowerCase().includes(debounceSearchNama.toLowerCase())
       })
-      setBarangs(filtered)
+      setSearchBarangs(filtered)
     } else {
-      setBarangs(barangs)
+      setSearchBarangs(barangs)
     }
   }, [debounceSearchNama])
 

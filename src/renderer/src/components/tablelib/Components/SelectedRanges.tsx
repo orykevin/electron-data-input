@@ -1,12 +1,9 @@
-import * as React from "react";
-import { PaneContentChild, Range } from "../../core";
-import { PartialArea } from "./PartialArea";
-import { isRangeIntersects } from "../Functions/isRangeIntersectsWith";
+import * as React from 'react'
+import { PaneContentChild, Range } from '../../core'
+import { PartialArea } from './PartialArea'
+import { isRangeIntersects } from '../Functions/isRangeIntersectsWith'
 
-export const SelectedRanges: React.FC<PaneContentChild> = ({
-  state,
-  calculatedRange,
-}) => {
+export const SelectedRanges: React.FC<PaneContentChild> = ({ state, calculatedRange }) => {
   return (
     <>
       {state.selectedRanges.map(
@@ -29,5 +26,5 @@ export const SelectedRanges: React.FC<PaneContentChild> = ({
           )
       )}
     </>
-  );
-};
+  )
+}

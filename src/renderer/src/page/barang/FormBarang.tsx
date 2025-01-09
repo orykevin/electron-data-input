@@ -60,8 +60,8 @@ const FormBarang = ({
         stockAwal: selectedBarang.stockAwal,
         listHarga: selectedBarang.unitBarang.map((u) => ({
           unit: u.unit?.id.toString() || '1',
-          harga: u.harga.harga,
-          hargaLain: u.hargaLain.map((h) => h.harga)
+          harga: u.harga?.harga | 0,
+          hargaLain: u.hargaLain.map((h) => h?.harga | 0)
         }))
       }
     : {

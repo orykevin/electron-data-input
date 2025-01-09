@@ -174,7 +174,7 @@ const DropdownInput: FC<DIProps> = ({ onCellChanged, cell }) => {
   }, [cell.isOpen, cell.inputValue])
 
   return (
-    <div style={{ width: '100%' }} onPointerDown={(e) => onCellChanged({ ...cell, isOpen: true })}>
+    <div style={{ width: '100%' }}>
       <Select
         {...(cell.inputValue && {
           inputValue,
@@ -185,7 +185,7 @@ const DropdownInput: FC<DIProps> = ({ onCellChanged, cell }) => {
         ref={selectRef}
         {...(cell.isOpen !== undefined && { menuIsOpen: cell.isOpen })}
         onMenuClose={() => onCellChanged({ ...cell, isOpen: !cell.isOpen, inputValue: undefined })}
-        onMenuOpen={() => onCellChanged({ ...cell, isOpen: true })}
+        // onMenuOpen={() => onCellChanged({ ...cell, isOpen: true })}
         onChange={(e) =>
           onCellChanged({
             ...cell,

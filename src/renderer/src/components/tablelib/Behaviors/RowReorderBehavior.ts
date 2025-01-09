@@ -1,67 +1,55 @@
-import { Behavior } from "../Model/Behavior";
-import { State } from "../Model/State";
+import { Behavior } from '../Model/Behavior'
+import { State } from '../Model/State'
 import {
   PointerLocation,
   getScrollOfScrollableElement,
   Id,
   DropPosition,
-  Direction,
-} from "../../core";
-import { PointerEvent } from "../Model/domEventsTypes";
-import { handleContextMenu } from "../Functions/handleContextMenu";
+  Direction
+} from '../../core'
+import { PointerEvent } from '../Model/domEventsTypes'
+import { handleContextMenu } from '../Functions/handleContextMenu'
 
 // TODO do a total rewrite here
 export class RowReorderBehavior extends Behavior {
   // TODO dont use internal state. Always fresh recalculation based on input data!
-  private initialRowIdx!: number;
-  private lastPossibleDropLocation?: PointerLocation;
-  private pointerOffset!: number;
-  private selectedIds!: Id[];
-  private position!: DropPosition;
-  autoScrollDirection: Direction = "vertical";
+  private initialRowIdx!: number
+  private lastPossibleDropLocation?: PointerLocation
+  private pointerOffset!: number
+  private selectedIds!: Id[]
+  private position!: DropPosition
+  autoScrollDirection: Direction = 'vertical'
 
-  handlePointerDown(
-    event: PointerEvent,
-    location: PointerLocation,
-    state: State
-  ): State {
-    this.initialRowIdx = location.row.idx;
-    this.lastPossibleDropLocation = location;
-    const indexes = state.selectedIndexes.sort();
-    const rows = indexes.map((i) => state.cellMatrix.rows[i]);
-    const upperIndexes = indexes.filter((i) => i < location.row.idx);
-    const upperRows = upperIndexes.map((i) => state.cellMatrix.rows[i]);
-    const upperRowsHeight = upperRows.reduce((sum, row) => sum + row.height, 0);
-    this.pointerOffset = upperRowsHeight + location.cellY;
-    this.selectedIds = rows.map((r) => r.rowId);
+  handlePointerDown(event: PointerEvent, location: PointerLocation, state: State): State {
+    this.initialRowIdx = location.row.idx
+    this.lastPossibleDropLocation = location
+    const indexes = state.selectedIndexes.sort()
+    const rows = indexes.map((i) => state.cellMatrix.rows[i])
+    const upperIndexes = indexes.filter((i) => i < location.row.idx)
+    const upperRows = upperIndexes.map((i) => state.cellMatrix.rows[i])
+    const upperRowsHeight = upperRows.reduce((sum, row) => sum + row.height, 0)
+    this.pointerOffset = upperRowsHeight + location.cellY
+    this.selectedIds = rows.map((r) => r.rowId)
     return {
       ...state,
-      lineOrientation: "horizontal",
+      lineOrientation: 'horizontal',
       shadowSize: rows.reduce((sum, col) => sum + col.height, 0),
-      shadowPosition: this.getShadowPosition(location, state),
-    };
+      shadowPosition: this.getShadowPosition(location, state)
+    }
   }
 
-  handlePointerMove(
-    event: PointerEvent,
-    location: PointerLocation,
-    state: State
-  ): State {
-    const shadowPosition = this.getShadowPosition(location, state);
-    let shadowCursor = "-webkit-grabbing";
-    let linePosition = state.linePosition;
-    const { scrollTop } = getScrollOfScrollableElement(state.scrollableElement);
-    const pointerLocation = location.viewportY + 0;
-    this.lastPossibleDropLocation = this.getLastPossibleDropLocation(
-      state,
-      location
-    );
+  handlePointerMove(event: PointerEvent, location: PointerLocation, state: State): State {
+    const shadowPosition = this.getShadowPosition(location, state)
+    let shadowCursor = '-webkit-grabbing'
+    let linePosition = state.linePosition
+    const { scrollTop } = getScrollOfScrollableElement(state.scrollableElement)
+    const pointerLocation = location.viewportY + 0
+    this.lastPossibleDropLocation = this.getLastPossibleDropLocation(state, location)
     if (
       this.lastPossibleDropLocation &&
       this.lastPossibleDropLocation.row.idx !== this.initialRowIdx
     ) {
-      const drawDown =
-        this.lastPossibleDropLocation.row.idx > this.initialRowIdx;
+      const drawDown = this.lastPossibleDropLocation.row.idx > this.initialRowIdx
       linePosition = Math.min(
         this.lastPossibleDropLocation.viewportY -
           this.lastPossibleDropLocation.cellY +
@@ -70,9 +58,9 @@ export class RowReorderBehavior extends Behavior {
           state.cellMatrix.ranges.stickyTopRange.height +
           state.cellMatrix.ranges.stickyBottomRange.height +
           scrollTop
-      );
+      )
       if (!state.props?.canReorderRows) {
-        this.position = drawDown ? "after" : "before";
+        this.position = drawDown ? 'after' : 'before'
       } else {
         if (
           state.props.canReorderRows &&
@@ -84,19 +72,17 @@ export class RowReorderBehavior extends Behavior {
         ) {
           if (drawDown) {
             if (
-              pointerLocation >
-                location.row.top +
-                  state.cellMatrix.ranges.stickyTopRange.height &&
+              pointerLocation > location.row.top + state.cellMatrix.ranges.stickyTopRange.height &&
               pointerLocation <
                 location.row.top +
                   state.cellMatrix.ranges.stickyTopRange.height +
                   location.row.height / 2
             ) {
-              this.position = "on";
-              shadowCursor = "move";
-              linePosition = -1;
+              this.position = 'on'
+              shadowCursor = 'move'
+              linePosition = -1
             } else {
-              this.position = "after";
+              this.position = 'after'
             }
           } else {
             if (
@@ -109,15 +95,15 @@ export class RowReorderBehavior extends Behavior {
                   state.cellMatrix.ranges.stickyTopRange.height +
                   location.row.height
             ) {
-              this.position = "on";
-              shadowCursor = "move";
-              linePosition = -1;
+              this.position = 'on'
+              shadowCursor = 'move'
+              linePosition = -1
             } else {
-              this.position = "before";
+              this.position = 'before'
             }
           }
         } else {
-          linePosition = -1;
+          linePosition = -1
         }
       }
     }
@@ -126,19 +112,19 @@ export class RowReorderBehavior extends Behavior {
       ...state,
       shadowPosition,
       linePosition,
-      shadowCursor,
-    };
+      shadowCursor
+    }
   }
 
   getShadowPosition(location: PointerLocation, state: State): number {
-    const y = location.viewportY - this.pointerOffset;
-    const max = state.cellMatrix.height - state.shadowSize;
+    const y = location.viewportY - this.pointerOffset
+    const max = state.cellMatrix.height - state.shadowSize
     if (y < 0) {
-      return 0;
+      return 0
     } else if (y > max) {
-      return max;
+      return max
     }
-    return y;
+    return y
   }
 
   getLastPossibleDropLocation(
@@ -147,22 +133,14 @@ export class RowReorderBehavior extends Behavior {
   ): PointerLocation | undefined {
     if (
       !state.props?.canReorderRows ||
-      state.props.canReorderRows(
-        currentLocation.row.rowId,
-        this.selectedIds,
-        this.position
-      )
+      state.props.canReorderRows(currentLocation.row.rowId, this.selectedIds, this.position)
     ) {
-      return currentLocation;
+      return currentLocation
     }
-    return this.lastPossibleDropLocation;
+    return this.lastPossibleDropLocation
   }
 
-  handlePointerUp(
-    event: PointerEvent,
-    location: PointerLocation,
-    state: State
-  ): State {
+  handlePointerUp(event: PointerEvent, location: PointerLocation, state: State): State {
     if (
       location.row.idx !== this.initialRowIdx &&
       this.lastPossibleDropLocation &&
@@ -172,17 +150,17 @@ export class RowReorderBehavior extends Behavior {
         this.lastPossibleDropLocation.row.rowId,
         this.selectedIds,
         this.position
-      );
+      )
     }
     return {
       ...state,
       linePosition: -1,
       shadowPosition: -1,
-      shadowCursor: "default",
-    };
+      shadowCursor: 'default'
+    }
   }
 
   handleContextMenu(event: PointerEvent, state: State): State {
-    return handleContextMenu(event, state);
+    return handleContextMenu(event, state)
   }
 }
