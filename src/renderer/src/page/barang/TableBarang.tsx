@@ -10,9 +10,17 @@ import {
   SelectionMode
 } from '@silevis/reactgrid'
 import '@silevis/reactgrid/styles.css'
-import { DataBarang } from '@/dbFunctions/barang'
+import {
+  createHarga,
+  DataBarang,
+  deleteBarang,
+  editBarangData,
+  updateBarang,
+  updateHargaBarang
+} from '@/dbFunctions/barang'
 import { formatWithThousandSeparator } from '@/lib/utils'
 import { EditCell, EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
+import { DropdownCellTemplateTest } from '@/components/tablelib'
 
 type DataBarangFull = DataBarang[number] & {
   hargaLainId: string | undefined
@@ -25,6 +33,7 @@ type Props = {
   barangs: DataBarang
   isEditable: boolean
   setSelectedBarangId: React.Dispatch<React.SetStateAction<number | null>>
+  setSearchBarangs: React.Dispatch<React.SetStateAction<DataBarang | []>>
 }
 
 const columnMap = {
@@ -123,7 +132,7 @@ const getDataRow = (data: DataBarangFull, columnId: ColumnId) => {
     case 'keluar':
       return { value: 0, nonEditable: true }
     case 'stockAkhir':
-      return { value: 0, nonEditable: true }
+      return { value: data.stockAwal, nonEditable: true }
     case 'editBarang':
       return { text: data.id.toString(), openedId: 0 }
     default:
@@ -156,7 +165,7 @@ const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
   return [...leftSide, ...movedElements, ...rightSide]
 }
 
-const TableBarang = ({ isEditable, barangs, setSelectedBarangId }: Props) => {
+const TableBarang = ({ isEditable, barangs, setSelectedBarangId, setSearchBarangs }: Props) => {
   const [data, setData] = React.useState<DataBarangFull[]>([])
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
 
@@ -164,6 +173,7 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId }: Props) => {
   const [cellChanges, setCellChanges] = React.useState<CellChange[][]>(() => [])
 
   React.useEffect(() => {
+    // if (!data) {
     const newData = barangs.map((barang) => ({
       ...barang,
       hargaLainId: barang.unitBarang[0]?.hargaLain[0]?.id.toString() || '',
@@ -172,9 +182,8 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId }: Props) => {
       selectedUnitOpen: false
     }))
     setData(newData)
+    // }
   }, [barangs])
-
-  console.log(barangs, 'barangs')
 
   const rows = getRows(
     data,
@@ -208,7 +217,6 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId }: Props) => {
           break
       }
 
-      const cell = usePrevValue ? change.previousCell : change.newCell
       // prevData[dataIndex][fieldName] =
       //   cell.type === 'text' ? cell.text : cell.type === 'number' ? cell.value : 'test'
       let dataRow = prevData.find((d) => d.id === dataIndex)
@@ -217,11 +225,65 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId }: Props) => {
         // prevDetails.push(dataRow);
         return
       }
+
       console.log(change, 'change')
       if (change.type === 'text' && typeof dataRow[fieldName] === 'string') {
         dataRow[fieldName] = change.newCell.text as never
-      } else if (change.type === 'number' && typeof dataRow[fieldName] === 'number') {
-        dataRow[fieldName] = change.newCell.value as never
+        if (change.columnId === 'kode' || change.columnId === 'nama') {
+          editBarangData(columnId as string, change.rowId as number, change.newCell.text as never)
+          setSearchBarangs((prev) => {
+            let newPrev = [...prev]
+            const idx = newPrev.findIndex((p) => p.id === change.rowId)
+            newPrev[idx][fieldName] = change.newCell.text as never
+            return newPrev
+          })
+        }
+      } else if (change.type === 'number') {
+        if (change.columnId === 'modal' || change.columnId === 'stockAwal') {
+          editBarangData(columnId as string, change.rowId as number, change.newCell.value as never)
+          setSearchBarangs((prev) => {
+            let newPrev = [...prev]
+            const idx = newPrev.findIndex((p) => p.id === change.rowId)
+            newPrev[idx][fieldName] = change.newCell.value as never
+            return newPrev
+          })
+          dataRow[fieldName] = change.newCell.value as never
+        } else if (change.columnId === 'harga') {
+          const barangIdx = barangs.findIndex((p) => p.id === change.rowId)
+          const unitBarangIdx = barangs[barangIdx].unitBarang.findIndex(
+            (ub) => ub.unit?.id === Number(dataRow.selectedUnitId)
+          )
+          const hargaBarang = barangs[barangIdx].unitBarang[unitBarangIdx].harga
+
+          if (!hargaBarang) {
+            createHarga(
+              barangs[barangIdx].unitBarang[unitBarangIdx].id,
+              change.newCell.value as number
+            ).then((createdHarga) => {
+              setSearchBarangs((prev) => {
+                let newPrev = [...prev]
+                newPrev[barangIdx].unitBarang[unitBarangIdx].harga = createdHarga
+                return newPrev
+              })
+              dataRow.unitBarang[
+                dataRow.unitBarang.findIndex((ub) => ub.unit?.id === Number(dataRow.selectedUnitId))
+              ].harga = createdHarga
+            })
+          } else {
+            updateHargaBarang(hargaBarang.id, change.newCell.value as number).then(
+              (updatedData) => {
+                setSearchBarangs((prev) => {
+                  let newPrev = [...prev]
+                  newPrev[barangIdx].unitBarang[unitBarangIdx].harga = updatedData
+                  return newPrev
+                })
+              }
+            )
+            dataRow.unitBarang[
+              dataRow.unitBarang.findIndex((ub) => ub.unit?.id === Number(dataRow.selectedUnitId))
+            ].harga.harga = change.newCell.value as never
+          }
+        }
       } else if (change.type === 'checkbox' && typeof dataRow[fieldName] === 'boolean') {
         dataRow[fieldName] = change.newCell.checked as never
       } else if (change.type === 'dropdown') {
@@ -300,13 +362,13 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId }: Props) => {
   ): MenuOption[] => {
     if (selectionMode === 'row') {
       menuOptions = [
-        ...menuOptions,
         {
-          id: 'removePerson',
+          id: 'removeData',
           label: 'Remove data',
           handler: () => {
+            deleteBarang(selectedRowIds.map((id) => barangs.find((barangs) => barangs.id === id)!))
             setData((prevData) => {
-              return [...prevData.filter((data, idx) => !selectedRowIds.includes(idx))]
+              return [...prevData.filter((data) => !selectedRowIds.includes(data.id))]
             })
           }
         }
@@ -365,7 +427,10 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId }: Props) => {
         enableRowSelection
         enableColumnSelection
         stickyTopRows={1}
-        customCellTemplates={{ edit: new EditTemplateCell() }}
+        customCellTemplates={{
+          edit: new EditTemplateCell(),
+          dropdown: new DropdownCellTemplateTest()
+        }}
       />
     </div>
   )

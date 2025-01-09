@@ -1,4 +1,4 @@
-import { Range } from "../../core";
+import { Range } from '../../core'
 
 export function isRangeIntersects(range1: Range, range2: Range): boolean {
   return (
@@ -6,5 +6,5 @@ export function isRangeIntersects(range1: Range, range2: Range): boolean {
     range2.first.row.idx <= range1.last.row.idx &&
     range2.last.column.idx >= range1.first.column.idx &&
     range2.last.row.idx >= range1.first.row.idx
-  );
+  )
 }

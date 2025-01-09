@@ -100,8 +100,6 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
     const listUnit = data.listHarga.map((ub) => Number(ub.unit))
     const restUnitBarang = selectedBarang.unitBarang.filter((ub) => !listUnit.includes(ub.unit!.id))
 
-    console.log(restUnitBarang, 'restUnitbarang')
-
     await Promise.all(
       restUnitBarang.map(async (ub) => {
         await Promise.all(
@@ -149,6 +147,13 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
 
         if (eqHargaId && previousHarga.harga !== ub.harga) {
           await database.update(harga).set({ harga: ub.harga }).where(eqHargaId)
+        } else {
+          if (ub.harga > 0) {
+            await database.insert(harga).values({
+              unitBarangId: previousUnitBarang.id,
+              harga: ub.harga
+            })
+          }
         }
 
         await Promise.all(
@@ -205,4 +210,76 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
     where: (barang, { eq }) => eq(barang.id, selectedBarang.id),
     with: { unitBarang: { with: { unit: true, harga: true, hargaLain: true } } }
   })
+}
+
+export const editBarangData = async (field: string, id: number, value: any) => {
+  try {
+    if (field === 'kode') {
+      await database.update(barang).set({ kode: value }).where(eq(barang.id, id))
+    } else if (field === 'nama') {
+      await database.update(barang).set({ nama: value }).where(eq(barang.id, id))
+    } else if (field === 'modal') {
+      await database.update(barang).set({ modal: value }).where(eq(barang.id, id))
+    } else if (field === 'stockAwal') {
+      await database.update(barang).set({ stockAwal: value }).where(eq(barang.id, id))
+    }
+    return 'Succsess'
+  } catch (e) {
+    console.log(e)
+    throw new Error(`${(e as Error).message}`)
+  }
+}
+
+export const deleteBarang = async (dataBarang: DataBarang) => {
+  try {
+    await Promise.all(
+      dataBarang.map(async (b) => {
+        await Promise.all(
+          b.unitBarang.map(async (ub) => {
+            await Promise.all(
+              ub.hargaLain.map(async (hl) => {
+                await database.delete(hargaLain).where(eq(hargaLain.id, hl.id))
+              })
+            )
+            ub.harga && (await database.delete(harga).where(eq(harga.id, ub.harga.id)))
+            await database.delete(unitBarang).where(eq(unitBarang.id, ub.id))
+          })
+        )
+        await database.delete(barang).where(eq(barang.id, b.id))
+      })
+    )
+
+    return 'Succsess'
+  } catch (e) {
+    console.log(e)
+    throw new Error(`${(e as Error).message}`)
+  }
+}
+
+export const createHarga = async (unitBarangId: number, value: number) => {
+  console.log(unitBarangId, value, 'creating harga')
+  try {
+    const createdHarga = await database
+      .insert(harga)
+      .values({ unitBarangId, harga: value })
+      .returning()
+    return createdHarga[0]
+  } catch (e) {
+    console.log(e)
+    throw new Error(`${(e as Error).message}`)
+  }
+}
+
+export const updateHargaBarang = async (id: number, value: number) => {
+  try {
+    const updatedHarga = await database
+      .update(harga)
+      .set({ harga: value })
+      .where(eq(harga.id, id))
+      .returning()
+    return updatedHarga[0]
+  } catch (e) {
+    console.log(e)
+    throw new Error(`${(e as Error).message}`)
+  }
 }

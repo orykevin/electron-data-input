@@ -1,25 +1,25 @@
-import React, { useRef, useLayoutEffect, useState } from "react";
-import { Location } from "../../core";
-import { State } from "../Model/State";
-import { FillHandleBehavior } from "../Behaviors/FillHandleBehavior";
+import React, { useRef, useLayoutEffect, useState } from 'react'
+import { Location } from '../../core'
+import { State } from '../Model/State'
+import { FillHandleBehavior } from '../Behaviors/FillHandleBehavior'
 
 interface FillHandleProps {
-  state: State;
-  location: Location;
+  state: State
+  location: Location
 }
 
 export const FillHandle: React.FC<FillHandleProps> = ({ state, location }) => {
-  const targetRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const targetRef = useRef<HTMLDivElement>(null)
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
   useLayoutEffect(() => {
     if (targetRef.current) {
       setDimensions({
         width: targetRef.current.offsetWidth,
-        height: targetRef.current.offsetHeight,
-      });
+        height: targetRef.current.offsetHeight
+      })
     }
-  }, []);
+  }, [])
 
   return (
     <div
@@ -27,19 +27,19 @@ export const FillHandle: React.FC<FillHandleProps> = ({ state, location }) => {
       ref={targetRef}
       style={{
         top: location.row.bottom - dimensions.width / 2,
-        left: location.column.right - dimensions.height / 2,
+        left: location.column.right - dimensions.height / 2
       }}
       onPointerDown={(event) => {
-        if (event.pointerType !== "mouse") {
+        if (event.pointerType !== 'mouse') {
           // !== undefined (disabled this event for cypress tests)
           state.update((state) => ({
             ...state,
-            currentBehavior: new FillHandleBehavior(),
-          }));
+            currentBehavior: new FillHandleBehavior()
+          }))
         }
       }}
     >
       <div className="rg-fill-handle" />
     </div>
-  );
-};
+  )
+}

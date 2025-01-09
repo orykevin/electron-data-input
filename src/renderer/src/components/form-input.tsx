@@ -16,7 +16,6 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 const FormInput = ({ label, type, name, fieldClassName, displayError, ...props }: InputProps) => {
   const { register, control } = useFormContext()
   const { error, isTouched } = control.getFieldState(name)
-  console.log(error, 'errror')
 
   return (
     <div className={cn('w-full space-y-2', fieldClassName)}>

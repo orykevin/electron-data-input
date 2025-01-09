@@ -20,9 +20,6 @@ const Barang = () => {
     return barangData || barangData2
   }, [searchBarangs, barangs, selectedBarangId])
 
-  console.log(selectedBarang, 'selectedBarang')
-  console.log(barangs, 'barangs')
-
   useEffect(() => {
     if (unitData && !initialized) {
       fetchData()
@@ -33,7 +30,6 @@ const Barang = () => {
     getBarang().then((result) => {
       setBarangs(result)
       setSearchBarangs(result)
-      console.log(result, 'tesult')
     })
   }, [])
 
@@ -50,6 +46,7 @@ const Barang = () => {
         isEditable={isEditable}
         barangs={searchBarangs}
         setSelectedBarangId={setSelectedBarangId}
+        setSearchBarangs={setSearchBarangs}
       />
       <Dialog
         open={selectedBarangId && selectedBarang ? true : false}
