@@ -15,7 +15,6 @@ import {
   DataBarang,
   deleteBarang,
   editBarangData,
-  updateBarang,
   updateHargaBarang
 } from '@/dbFunctions/barang'
 import { formatWithThousandSeparator } from '@/lib/utils'
@@ -67,8 +66,8 @@ const getColumns = (): Column[] => [
   { columnId: 'kode', width: 80, resizable: true, reorderable: true },
   { columnId: 'nama', width: 300, resizable: true, reorderable: true },
   { columnId: 'unit', width: 80, resizable: true, reorderable: true },
-  { columnId: 'modal', width: 120, resizable: true, reorderable: true },
-  { columnId: 'harga', width: 120, resizable: true, reorderable: true },
+  { columnId: 'modal', width: 100, resizable: true, reorderable: true },
+  { columnId: 'harga', width: 100, resizable: true, reorderable: true },
   { columnId: 'hargaLain', width: 120, resizable: true, reorderable: true },
   { columnId: 'stockAwal', width: 100, resizable: true, reorderable: true },
   { columnId: 'masuk', width: 75, resizable: true, reorderable: true },
@@ -269,6 +268,15 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId, setSearchBarang
                 dataRow.unitBarang.findIndex((ub) => ub.unit?.id === Number(dataRow.selectedUnitId))
               ].harga = createdHarga
             })
+            dataRow.unitBarang[
+              dataRow.unitBarang.findIndex((ub) => ub.unit?.id === Number(dataRow.selectedUnitId))
+            ].harga = {
+              harga: change.newCell.value,
+              deskripsi: '',
+              id: 1,
+              persen: 0,
+              unitBarangId: 1
+            } // just placeholder
           } else {
             updateHargaBarang(hargaBarang.id, change.newCell.value as number).then(
               (updatedData) => {

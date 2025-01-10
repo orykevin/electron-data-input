@@ -132,12 +132,7 @@ const FormBarang = ({
   // console.log(listHargaValues, 'listHargaValues')
 
   return (
-    <div
-      className={cn(
-        'mb-3 pb-4 border-b border-gray-200 shadow-sm',
-        isEdit && 'mb-0 pb-0 border-none shadow-none'
-      )}
-    >
+    <div className={cn('mb-3', isEdit && 'mb-0 pb-0')}>
       <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex gap-3 mb-2 items-end">
@@ -188,7 +183,7 @@ const FormBarang = ({
                   <InputNumber
                     label="Harga"
                     name={`listHarga.${index}.harga`}
-                    fieldClassName="w-48"
+                    fieldClassName="w-40"
                   />
                   <div className={cn(isEdit ? 'block' : 'flex items-end')}>
                     {listHargaValues[index].hargaLain.map((fieldLain, indexLain) => {
@@ -197,7 +192,7 @@ const FormBarang = ({
                           <InputNumber
                             label={'Harga Lain ' + (indexLain + 1)}
                             name={`listHarga.${index}.hargaLain.${indexLain}`}
-                            fieldClassName="w-48"
+                            fieldClassName="w-40"
                           />
                           <Button
                             className="!w-max !h-max px-2"

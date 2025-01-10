@@ -98,3 +98,13 @@ export const supplier = sqliteTable('supplier', {
 export const supplierRelations = relations(supplier, ({ many }) => ({
   barang: many(barang)
 }))
+
+// user
+
+export const user = sqliteTable('user', {
+  id: int('id').primaryKey({ autoIncrement: true }),
+  username: text('username'),
+  password: text('password'),
+  isSuperAdmin: int('isSuperAdmin', { mode: 'boolean' }),
+  isAdmin: int('isAdmin', { mode: 'boolean' })
+})

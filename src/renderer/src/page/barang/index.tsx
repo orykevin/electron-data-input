@@ -35,7 +35,6 @@ const Barang = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-6">Barang Page</h1>
       <MenuBarang
         setEditable={setIsEditable}
         barangs={barangs}
