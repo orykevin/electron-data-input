@@ -36,27 +36,27 @@ export class ColumnSelectionBehavior extends Behavior {
     return selectMultipleColumns(state, this.initialColumn, location.column, isSelectionKey(event))
   }
 
-  handlePointerUp(event: MouseEvent | PointerEvent, location: Location, state: State): State {
-    if (
-      state.props?.onSelectionChanging &&
-      !state.props.onSelectionChanging(state.selectedRanges)
-    ) {
-      // Cancel the latest selection
-      const filteredRanges = [...state.selectedRanges].filter(
-        (_, index) => index !== state.activeSelectedRangeIdx
-      )
+  // handlePointerUp(event: MouseEvent | PointerEvent, location: Location, state: State): State {
+  //   if (
+  //     state.props?.onSelectionChanging &&
+  //     !state.props.onSelectionChanging(state.selectedRanges)
+  //   ) {
+  //     // Cancel the latest selection
+  //     const filteredRanges = [...state.selectedRanges].filter(
+  //       (_, index) => index !== state.activeSelectedRangeIdx
+  //     )
 
-      return {
-        ...state,
-        selectedRanges: filteredRanges,
-        activeSelectedRangeIdx: filteredRanges.length - 1
-      }
-    }
+  //     return {
+  //       ...state,
+  //       selectedRanges: filteredRanges,
+  //       activeSelectedRangeIdx: filteredRanges.length - 1
+  //     }
+  //   }
 
-    state.props?.onSelectionChanged && state.props.onSelectionChanged(state.selectedRanges)
+  //   state.props?.onSelectionChanged && state.props.onSelectionChanged(state.selectedRanges)
 
-    return state
-  }
+  //   return state
+  // }
 
   handleContextMenu(event: PointerEvent, state: State): State {
     return handleContextMenu(event, state)

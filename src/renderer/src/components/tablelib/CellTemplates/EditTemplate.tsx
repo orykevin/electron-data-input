@@ -1,14 +1,10 @@
 import * as React from 'react'
 import {
-  CellTemplate,
   Cell,
   Compatible,
   Uncertain,
   UncertainCompatible,
-  isNavigationKey,
-  getCellProperty,
-  isAlphaNumericKey,
-  keyCodes
+  getCellProperty
 } from '@silevis/reactgrid'
 import { Button } from '@/components/ui/button'
 import { Pencil } from 'lucide-react'
@@ -27,19 +23,19 @@ export class EditTemplateCell {
     return { ...uncertainCell, text, value, openedId }
   }
 
-  handleKeyDown(
-    cell: Compatible<EditCell>,
-    keyCode: number,
-    ctrl: boolean,
-    shift: boolean,
-    alt: boolean
-  ): { cell: Compatible<EditCell>; enableEditMode: boolean } {
-    if (!ctrl && !alt && isAlphaNumericKey(keyCode)) return { cell, enableEditMode: true }
-    return {
-      cell,
-      enableEditMode: keyCode === keyCodes.POINTER || keyCode === keyCodes.ENTER
-    }
-  }
+  // handleKeyDown(
+  //   cell: Compatible<EditCell>,
+  //   keyCode: number,
+  //   ctrl: boolean,
+  //   shift: boolean,
+  //   alt: boolean
+  // ): { cell: Compatible<EditCell>; enableEditMode: boolean } {
+  //   if (!ctrl && !alt && isAlphaNumericKey(keyCode)) return { cell, enableEditMode: true }
+  //   return {
+  //     cell,
+  //     enableEditMode: keyCode === keyCodes.POINTER || keyCode === keyCodes.ENTER
+  //   }
+  // }
 
   update(
     cell: Compatible<EditCell>,
@@ -54,7 +50,7 @@ export class EditTemplateCell {
 
   render(
     cell: Compatible<EditCell>,
-    isInEditMode: boolean,
+    _isInEditMode: boolean,
     onCellChanged: (cell: Compatible<EditCell>, commit: boolean) => void
   ): React.ReactNode {
     //   if (!isInEditMode) {
@@ -68,6 +64,7 @@ export class EditTemplateCell {
     //       />
     //     );
     //   }
+
     return (
       // <input
       //   ref={input => {

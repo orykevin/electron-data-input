@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react'
-import { database } from './db'
 import Main from './page/main'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from './components/ui/sidebar'
 import { AppSidebar } from './components/app-sidebar'
@@ -7,8 +5,6 @@ import { Separator } from './components/ui/separator'
 import NavBreadcrumbs from './components/nav-breadcrumbs'
 import { Route, Routes } from 'react-router-dom'
 import Barang from './page/barang'
-import { createUser } from './dbFunctions/user'
-import { Button } from './components/ui/button'
 import useUser from './store/useUserStore'
 import LoginForm from './components/login-form'
 import PengaturanAkun from './page/pengaturan-akun'
@@ -20,7 +16,7 @@ function App(): JSX.Element {
   //   })
   // }
 
-  const { data: userData, login, logout } = useUser()
+  const { data: userData } = useUser()
 
   if (!userData) return <LoginForm />
 

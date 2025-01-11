@@ -1,11 +1,4 @@
-import {
-  AnySQLiteColumn,
-  int,
-  primaryKey,
-  sqliteTable,
-  text,
-  unique
-} from 'drizzle-orm/sqlite-core'
+import { AnySQLiteColumn, int, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { timeStampRow } from './helpers'
 import { relations } from 'drizzle-orm'
 

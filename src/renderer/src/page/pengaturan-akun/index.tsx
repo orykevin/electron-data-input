@@ -2,19 +2,10 @@ import FormInput from '@/components/form-input'
 import HeaderBase from '@/components/header-base'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { deleteBarang } from '@/dbFunctions/barang'
-import {
-  AllUser,
-  createUser,
-  deleteUser,
-  getAllUser,
-  updateUser,
-  UserData
-} from '@/dbFunctions/user'
+import { AllUser, createUser, deleteUser, getAllUser, updateUser } from '@/dbFunctions/user'
 import useUser from '@/store/useUserStore'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Delete, Pencil, Save, User, X } from 'lucide-react'
-import { register } from 'module'
 import { useEffect, useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import z from 'zod'

@@ -18,7 +18,6 @@ import { Line } from './Line'
 import { Shadow } from './Shadow'
 import { ContextMenu } from './ContextMenu'
 import { componentDidUpdate } from '../Functions/componentDidUpdate'
-import { StateProvider } from './StateProvider'
 
 export class ReactGrid extends React.Component<ReactGridProps, State> {
   private updateState = (state: State) => this.setState(state)
@@ -91,26 +90,26 @@ export class ReactGrid extends React.Component<ReactGridProps, State> {
 
     if (state.legacyBrowserMode) {
       return (
-        <StateProvider state={state}>
-          <LegacyBrowserGridRenderer eventHandlers={eventHandlers} />
-        </StateProvider>
+        // <StateProvider state={state}>
+        <LegacyBrowserGridRenderer eventHandlers={eventHandlers} />
+        // </StateProvider>
       )
     }
 
     return (
-      <StateProvider state={state}>
-        <GridRenderer eventHandlers={eventHandlers}>
-          <PanesRenderer cellRenderer={CellRenderer} />
+      // <StateProvider state={state}>
+      <GridRenderer eventHandlers={eventHandlers}>
+        <PanesRenderer cellRenderer={CellRenderer} />
 
-          <Line />
+        <Line />
 
-          <Shadow />
+        <Shadow />
 
-          <ContextMenu />
+        <ContextMenu />
 
-          {state.currentlyEditedCell && <CellEditorRenderer />}
-        </GridRenderer>
-      </StateProvider>
+        {state.currentlyEditedCell && <CellEditorRenderer />}
+      </GridRenderer>
+      // </StateProvider>
     )
   }
 }

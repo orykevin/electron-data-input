@@ -1,14 +1,11 @@
 import React, { SetStateAction } from 'react'
-import { FormProvider, set, useFieldArray, useForm } from 'react-hook-form'
+import { FormProvider, useFieldArray, useForm } from 'react-hook-form'
 import z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Input } from '@/components/ui/input'
 import FormInput from '@/components/form-input'
-import { Form } from 'react-router-dom'
 import { SelectFormInput } from '@/components/select-form-input'
 import { Button } from '@/components/ui/button'
 import InputNumber from '@/components/input-number'
-import { hargaLain } from 'src/db/schema'
 import useAllUnit from '@/store/useUnitStore'
 import { Delete, PlusCircle } from 'lucide-react'
 import { createBarang, DataBarang, updateBarang } from '@/dbFunctions/barang'
@@ -73,7 +70,7 @@ const FormBarang = ({
     defaultValues
   })
 
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     name: 'listHarga',
     control: form.control
   })
@@ -186,7 +183,7 @@ const FormBarang = ({
                     fieldClassName="w-40"
                   />
                   <div className={cn(isEdit ? 'block' : 'flex items-end')}>
-                    {listHargaValues[index].hargaLain.map((fieldLain, indexLain) => {
+                    {listHargaValues[index].hargaLain.map((_fieldLain, indexLain) => {
                       return (
                         <div className="relative flex items-end">
                           <InputNumber

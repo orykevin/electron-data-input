@@ -1,4 +1,3 @@
-import { DataUnit, getAllUnit } from '@/dbFunctions/unit'
 import { loginWithPassword, UserData } from '@/dbFunctions/user'
 import { create } from 'zustand'
 

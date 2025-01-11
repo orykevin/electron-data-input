@@ -99,10 +99,10 @@ export class DropdownCellTemplateTest implements CellTemplate<DropdownCell> {
     })
   }
 
-  getClassName(cell: Compatible<DropdownCell>, isInEditMode: boolean): string {
-    const isOpen = cell.isOpen ? 'open' : 'closed'
-    return `${cell.className ? cell.className : ''}${isOpen}`
-  }
+  // getClassName(cell: Compatible<DropdownCell>, isInEditMode: boolean): string {
+  //   const isOpen = cell.isOpen ? 'open' : 'closed'
+  //   return `${cell.className ? cell.className : ''}${isOpen}`
+  // }
 
   handleKeyDown(
     cell: Compatible<DropdownCell>,
@@ -143,6 +143,7 @@ export class DropdownCellTemplateTest implements CellTemplate<DropdownCell> {
     isInEditMode: boolean,
     onCellChanged: (cell: Compatible<DropdownCell>, commit: boolean) => void
   ): React.ReactNode {
+    console.log(isInEditMode)
     return (
       <DropdownInput
         onCellChanged={(cell) => onCellChanged(this.getCompatibleCell(cell), true)}

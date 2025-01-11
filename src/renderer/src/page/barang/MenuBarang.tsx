@@ -5,7 +5,6 @@ import useDebounce from '@/lib/hooks/use-debounce'
 import { SetStateAction, useEffect, useState } from 'react'
 import FormBarang from './FormBarang'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
 type Props = {
   setEditable?: React.Dispatch<SetStateAction<boolean>>

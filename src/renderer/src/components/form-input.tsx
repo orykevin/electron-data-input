@@ -1,9 +1,7 @@
 import React from 'react'
-import InputNumber from './input-number'
 import { Input } from './ui/input'
 import { useFormContext } from 'react-hook-form'
 import { cn } from '@/lib/utils'
-import { is } from 'drizzle-orm'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string

@@ -144,7 +144,7 @@ const getRows = (data: DataBarangFull[], columnsOrder: ColumnId[], disabled?: bo
     rowId: 'header',
     cells: columnsOrder.map((columnId) => ({ type: 'header', text: columnMap[columnId] }))
   },
-  ...data.map<Row>((data, idx) => ({
+  ...data.map<Row>((data) => ({
     rowId: data.id,
     reorderable: true,
     cells: columnsOrder.map((columnId) => ({
@@ -195,6 +195,7 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId, setSearchBarang
     prevData: DataBarangFull[],
     usePrevValue: boolean = false
   ): DataBarangFull[] => {
+    if (usePrevValue) console.log(usePrevValue)
     changes.forEach((change) => {
       const dataIndex = change.rowId
       const columnId = change.columnId
@@ -225,7 +226,7 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId, setSearchBarang
         return
       }
 
-      console.log(change, 'change')
+      // console.log(change, 'change')
       if (change.type === 'text' && typeof dataRow[fieldName] === 'string') {
         dataRow[fieldName] = change.newCell.text as never
         if (change.columnId === 'kode' || change.columnId === 'nama') {
@@ -364,7 +365,7 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId, setSearchBarang
 
   const handleContextMenu = (
     selectedRowIds: Id[],
-    selectedColIds: Id[],
+    _selectedColIds: Id[],
     selectionMode: SelectionMode,
     menuOptions: MenuOption[]
   ): MenuOption[] => {

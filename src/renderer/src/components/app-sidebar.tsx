@@ -1,20 +1,5 @@
-'use client'
-
 import * as React from 'react'
-import {
-  BookOpen,
-  Bot,
-  Home,
-  LifeBuoy,
-  Package,
-  ReceiptText,
-  Send,
-  Settings2,
-  ShoppingBag,
-  SquareTerminal,
-  Store,
-  UserCog
-} from 'lucide-react'
+import { Home, Package, ReceiptText, ShoppingBag, Store, UserCog } from 'lucide-react'
 
 import {
   Sidebar,
