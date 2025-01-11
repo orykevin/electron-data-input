@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectValue } from './ui/select'
 import { SelectTrigger } from '@radix-ui/react-select'
-import { ChangeHandler, useFormContext } from 'react-hook-form'
+import { useFormContext } from 'react-hook-form'
 
 type Props = {
   label: string

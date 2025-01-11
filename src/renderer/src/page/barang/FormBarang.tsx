@@ -1,14 +1,11 @@
 import React, { SetStateAction } from 'react'
-import { FormProvider, set, useFieldArray, useForm } from 'react-hook-form'
+import { FormProvider, useFieldArray, useForm } from 'react-hook-form'
 import z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Input } from '@/components/ui/input'
 import FormInput from '@/components/form-input'
-import { Form } from 'react-router-dom'
 import { SelectFormInput } from '@/components/select-form-input'
 import { Button } from '@/components/ui/button'
 import InputNumber from '@/components/input-number'
-import { hargaLain } from 'src/db/schema'
 import useAllUnit from '@/store/useUnitStore'
 import { Delete, PlusCircle } from 'lucide-react'
 import { createBarang, DataBarang, updateBarang } from '@/dbFunctions/barang'
@@ -73,7 +70,7 @@ const FormBarang = ({
     defaultValues
   })
 
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     name: 'listHarga',
     control: form.control
   })
@@ -132,12 +129,7 @@ const FormBarang = ({
   // console.log(listHargaValues, 'listHargaValues')
 
   return (
-    <div
-      className={cn(
-        'mb-3 pb-4 border-b border-gray-200 shadow-sm',
-        isEdit && 'mb-0 pb-0 border-none shadow-none'
-      )}
-    >
+    <div className={cn('mb-3', isEdit && 'mb-0 pb-0')}>
       <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex gap-3 mb-2 items-end">
@@ -188,16 +180,16 @@ const FormBarang = ({
                   <InputNumber
                     label="Harga"
                     name={`listHarga.${index}.harga`}
-                    fieldClassName="w-48"
+                    fieldClassName="w-40"
                   />
                   <div className={cn(isEdit ? 'block' : 'flex items-end')}>
-                    {listHargaValues[index].hargaLain.map((fieldLain, indexLain) => {
+                    {listHargaValues[index].hargaLain.map((_fieldLain, indexLain) => {
                       return (
                         <div className="relative flex items-end">
                           <InputNumber
                             label={'Harga Lain ' + (indexLain + 1)}
                             name={`listHarga.${index}.hargaLain.${indexLain}`}
-                            fieldClassName="w-48"
+                            fieldClassName="w-40"
                           />
                           <Button
                             className="!w-max !h-max px-2"

@@ -15,7 +15,6 @@ import {
   DataBarang,
   deleteBarang,
   editBarangData,
-  updateBarang,
   updateHargaBarang
 } from '@/dbFunctions/barang'
 import { formatWithThousandSeparator } from '@/lib/utils'
@@ -67,8 +66,8 @@ const getColumns = (): Column[] => [
   { columnId: 'kode', width: 80, resizable: true, reorderable: true },
   { columnId: 'nama', width: 300, resizable: true, reorderable: true },
   { columnId: 'unit', width: 80, resizable: true, reorderable: true },
-  { columnId: 'modal', width: 120, resizable: true, reorderable: true },
-  { columnId: 'harga', width: 120, resizable: true, reorderable: true },
+  { columnId: 'modal', width: 100, resizable: true, reorderable: true },
+  { columnId: 'harga', width: 100, resizable: true, reorderable: true },
   { columnId: 'hargaLain', width: 120, resizable: true, reorderable: true },
   { columnId: 'stockAwal', width: 100, resizable: true, reorderable: true },
   { columnId: 'masuk', width: 75, resizable: true, reorderable: true },
@@ -145,7 +144,7 @@ const getRows = (data: DataBarangFull[], columnsOrder: ColumnId[], disabled?: bo
     rowId: 'header',
     cells: columnsOrder.map((columnId) => ({ type: 'header', text: columnMap[columnId] }))
   },
-  ...data.map<Row>((data, idx) => ({
+  ...data.map<Row>((data) => ({
     rowId: data.id,
     reorderable: true,
     cells: columnsOrder.map((columnId) => ({
@@ -196,6 +195,7 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId, setSearchBarang
     prevData: DataBarangFull[],
     usePrevValue: boolean = false
   ): DataBarangFull[] => {
+    if (usePrevValue) console.log(usePrevValue)
     changes.forEach((change) => {
       const dataIndex = change.rowId
       const columnId = change.columnId
@@ -226,7 +226,7 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId, setSearchBarang
         return
       }
 
-      console.log(change, 'change')
+      // console.log(change, 'change')
       if (change.type === 'text' && typeof dataRow[fieldName] === 'string') {
         dataRow[fieldName] = change.newCell.text as never
         if (change.columnId === 'kode' || change.columnId === 'nama') {
@@ -269,6 +269,15 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId, setSearchBarang
                 dataRow.unitBarang.findIndex((ub) => ub.unit?.id === Number(dataRow.selectedUnitId))
               ].harga = createdHarga
             })
+            dataRow.unitBarang[
+              dataRow.unitBarang.findIndex((ub) => ub.unit?.id === Number(dataRow.selectedUnitId))
+            ].harga = {
+              harga: change.newCell.value,
+              deskripsi: '',
+              id: 1,
+              persen: 0,
+              unitBarangId: 1
+            } // just placeholder
           } else {
             updateHargaBarang(hargaBarang.id, change.newCell.value as number).then(
               (updatedData) => {
@@ -356,7 +365,7 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId, setSearchBarang
 
   const handleContextMenu = (
     selectedRowIds: Id[],
-    selectedColIds: Id[],
+    _selectedColIds: Id[],
     selectionMode: SelectionMode,
     menuOptions: MenuOption[]
   ): MenuOption[] => {

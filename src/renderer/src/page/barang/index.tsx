@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { DataBarang, getBarang } from '@/dbFunctions/barang'
 import useAllUnit from '@/store/useUnitStore'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { set } from 'react-hook-form'
 import FormBarang from './FormBarang'
 
 const Barang = () => {
@@ -35,7 +34,6 @@ const Barang = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-6">Barang Page</h1>
       <MenuBarang
         setEditable={setIsEditable}
         barangs={barangs}

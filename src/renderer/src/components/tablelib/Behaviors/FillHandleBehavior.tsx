@@ -26,6 +26,7 @@ export class FillHandleBehavior extends Behavior {
   private fillRange?: Range
 
   handlePointerEnter(event: PointerEvent, location: Location, state: State): State {
+    console.log(event)
     const selectedRange = getActiveSelectedRange(state)
     this.fillDirection = this.getFillDirection(selectedRange, location)
     this.fillRange = this.getFillRange(
@@ -253,7 +254,7 @@ export class FillHandleBehavior extends Behavior {
     const result = []
     const stopCondition = first.length <= second.length ? first.length : second.length
     for (let i = 0; i < stopCondition; ++i) {
-      result.push(first[i] * second[i])
+      result.push((first[i] * second[i]) as never)
     }
     return result
   }

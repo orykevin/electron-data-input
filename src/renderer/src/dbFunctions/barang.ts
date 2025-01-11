@@ -78,6 +78,7 @@ export const createBarang = async (data: FormDataBarang) => {
     return createdData
   } catch (err) {
     console.log(err)
+    throw new Error(`Error has found`)
   }
 }
 

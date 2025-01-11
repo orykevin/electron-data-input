@@ -1,38 +1,51 @@
-import * as React from "react";
+import * as React from 'react'
 
 // NOTE: all modules imported below may be imported from '@silevis/reactgrid'
-import { isAlphaNumericKey, isFunctionKey, isNavigationKey } from "./keyCodeCheckings";
-import { getCellProperty } from "../Functions/getCellProperty";
-import { keyCodes } from "../Functions/keyCodes";
-import { Cell, CellTemplate, Compatible, Uncertain, UncertainCompatible } from "../Model/PublicModel";
-import { getCharFromKey } from "./getCharFromKeyCode";
+import { isAlphaNumericKey, isFunctionKey, isNavigationKey } from './keyCodeCheckings'
+import { getCellProperty } from '../Functions/getCellProperty'
+import { keyCodes } from '../Functions/keyCodes'
+import {
+  Cell,
+  CellTemplate,
+  Compatible,
+  Uncertain,
+  UncertainCompatible
+} from '../Model/PublicModel'
+import { getCharFromKey } from './getCharFromKeyCode'
 
 export interface TextCell extends Cell {
-  type: "text";
-  text: string;
-  placeholder?: string;
-  validator?: (text: string) => boolean;
-  renderer?: (text: string) => React.ReactNode;
-  errorMessage?: string;
+  type: 'text'
+  text: string
+  placeholder?: string
+  validator?: (text: string) => boolean
+  renderer?: (text: string) => React.ReactNode
+  errorMessage?: string
 }
 
 export class TextCellTemplate implements CellTemplate<TextCell> {
-  private wasEscKeyPressed = false;
+  private wasEscKeyPressed = false
 
   getCompatibleCell(uncertainCell: Uncertain<TextCell>): Compatible<TextCell> {
-    const text = getCellProperty(uncertainCell, "text", "string");
-    let placeholder: string | undefined;
+    const text = getCellProperty(uncertainCell, 'text', 'string')
+    let placeholder: string | undefined
     try {
-      placeholder = getCellProperty(uncertainCell, "placeholder", "string");
+      placeholder = getCellProperty(uncertainCell, 'placeholder', 'string')
     } catch {
-      placeholder = "";
+      placeholder = ''
     }
-    const value = parseFloat(text); // TODO more advanced parsing for all text based cells
-    return { ...uncertainCell, text, value, placeholder };
+    const value = parseFloat(text) // TODO more advanced parsing for all text based cells
+    return { ...uncertainCell, text, value, placeholder }
   }
 
-  update(cell: Compatible<TextCell>, cellToMerge: UncertainCompatible<TextCell>): Compatible<TextCell> {
-    return this.getCompatibleCell({ ...cell, text: cellToMerge.text, placeholder: cellToMerge.placeholder });
+  update(
+    cell: Compatible<TextCell>,
+    cellToMerge: UncertainCompatible<TextCell>
+  ): Compatible<TextCell> {
+    return this.getCompatibleCell({
+      ...cell,
+      text: cellToMerge.text,
+      placeholder: cellToMerge.placeholder
+    })
   }
 
   handleKeyDown(
@@ -45,33 +58,33 @@ export class TextCellTemplate implements CellTemplate<TextCell> {
     capsLock: boolean
   ): { cell: Compatible<TextCell>; enableEditMode: boolean } {
     if (isFunctionKey(keyCode)) {
-      if (keyCode === keyCodes.F2) return { cell, enableEditMode: true };
-      return { cell, enableEditMode: false };
+      if (keyCode === keyCodes.F2) return { cell, enableEditMode: true }
+      return { cell, enableEditMode: false }
     }
 
-    const char = getCharFromKey(key, shift, capsLock);
+    const char = getCharFromKey(key, shift, capsLock)
 
     if (!ctrl && !alt && isAlphaNumericKey(keyCode) && !(shift && keyCode === keyCodes.SPACE))
-      return { cell: this.getCompatibleCell({ ...cell, text: char }), enableEditMode: true };
+      return { cell: this.getCompatibleCell({ ...cell, text: char }), enableEditMode: true }
     return {
       cell,
-      enableEditMode: keyCode === keyCodes.POINTER || keyCode === keyCodes.ENTER,
-    };
+      enableEditMode: keyCode === keyCodes.POINTER || keyCode === keyCodes.ENTER
+    }
   }
 
   handleCompositionEnd(
     cell: Compatible<TextCell>,
     eventData: any
   ): { cell: Compatible<TextCell>; enableEditMode: boolean } {
-    return { cell: { ...cell, text: eventData }, enableEditMode: true };
+    return { cell: { ...cell, text: eventData }, enableEditMode: true }
   }
 
-  getClassName(cell: Compatible<TextCell>, isInEditMode: boolean): string {
-    const isValid = cell.validator ? cell.validator(cell.text) : true;
-    const className = cell.className ? cell.className : "";
-    return `${isValid ? "valid" : "rg-invalid"} ${
-      cell.placeholder && cell.text === "" ? "placeholder" : ""
-    } ${className}`;
+  getClassName(cell: Compatible<TextCell>, _isInEditMode: boolean): string {
+    const isValid = cell.validator ? cell.validator(cell.text) : true
+    const className = cell.className ? cell.className : ''
+    return `${isValid ? 'valid' : 'rg-invalid'} ${
+      cell.placeholder && cell.text === '' ? 'placeholder' : ''
+    } ${className}`
   }
 
   render(
@@ -80,10 +93,10 @@ export class TextCellTemplate implements CellTemplate<TextCell> {
     onCellChanged: (cell: Compatible<TextCell>, commit: boolean) => void
   ): React.ReactNode {
     if (!isInEditMode) {
-      const isValid = cell.validator ? cell.validator(cell.text) : true;
-      const cellText = cell.text || cell.placeholder || "";
-      const textToDisplay = !isValid && cell.errorMessage ? cell.errorMessage : cellText;
-      return cell.renderer ? cell.renderer(textToDisplay) : textToDisplay;
+      const isValid = cell.validator ? cell.validator(cell.text) : true
+      const cellText = cell.text || cell.placeholder || ''
+      const textToDisplay = !isValid && cell.errorMessage ? cell.errorMessage : cellText
+      return cell.renderer ? cell.renderer(textToDisplay) : textToDisplay
     }
 
     return (
@@ -91,15 +104,20 @@ export class TextCellTemplate implements CellTemplate<TextCell> {
         className="rg-input"
         ref={(input) => {
           if (input) {
-            input.focus();
-            input.setSelectionRange(input.value.length, input.value.length);
+            input.focus()
+            input.setSelectionRange(input.value.length, input.value.length)
           }
         }}
         defaultValue={cell.text}
-        onChange={(e) => onCellChanged(this.getCompatibleCell({ ...cell, text: e.currentTarget.value }), false)}
+        onChange={(e) =>
+          onCellChanged(this.getCompatibleCell({ ...cell, text: e.currentTarget.value }), false)
+        }
         onBlur={(e) => {
-          onCellChanged(this.getCompatibleCell({ ...cell, text: e.currentTarget.value }), !this.wasEscKeyPressed);
-          this.wasEscKeyPressed = false;
+          onCellChanged(
+            this.getCompatibleCell({ ...cell, text: e.currentTarget.value }),
+            !this.wasEscKeyPressed
+          )
+          this.wasEscKeyPressed = false
         }}
         onCopy={(e) => e.stopPropagation()}
         onCut={(e) => e.stopPropagation()}
@@ -107,10 +125,10 @@ export class TextCellTemplate implements CellTemplate<TextCell> {
         onPointerDown={(e) => e.stopPropagation()}
         placeholder={cell.placeholder}
         onKeyDown={(e) => {
-          if (isAlphaNumericKey(e.keyCode) || isNavigationKey(e.keyCode)) e.stopPropagation();
-          if (e.keyCode === keyCodes.ESCAPE) this.wasEscKeyPressed = true;
+          if (isAlphaNumericKey(e.keyCode) || isNavigationKey(e.keyCode)) e.stopPropagation()
+          if (e.keyCode === keyCodes.ESCAPE) this.wasEscKeyPressed = true
         }}
       />
-    );
+    )
   }
 }

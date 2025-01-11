@@ -606,7 +606,7 @@ function resizeSelection(
     }
     let scrollToRowIdx = 0,
       scrollToColIdx = 0
-    let axis: 'vertical' | 'horizontal'
+    // let axis: 'vertical' | 'horizontal'
     switch (scrollDirection) {
       case 'horizontal':
         scrollToRowIdx = location.row.idx

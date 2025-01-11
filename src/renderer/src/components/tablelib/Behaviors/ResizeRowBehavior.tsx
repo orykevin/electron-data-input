@@ -7,10 +7,8 @@ import {
   getScrollOfScrollableElement,
   getReactGridOffsets,
   getStickyOffset,
-  getVisibleSizeOfReactGrid,
-  CellMatrix
+  getVisibleSizeOfReactGrid
 } from '../../core'
-import { PointerEvent } from '../Model/domEventsTypes'
 import { State } from '../Model/State'
 import { Behavior } from '../Model/Behavior'
 import { ResizeRowHint } from '../Components/ResizeHint'
@@ -22,47 +20,47 @@ export class ResizeRowBehavior extends Behavior {
   autoScrollDirection: Direction = 'vertical'
   isInScrollableRange!: boolean
 
-  handlePointerDown(event: PointerEvent, location: PointerLocation, state: State): State {
-    this.initialLocation = location
-    this.resizedRow = location.row
-    this.isInScrollableRange = state.cellMatrix.scrollableRange.rows.some(
-      (r) => r.idx === this.resizedRow.idx
-    )
-    return state
-  }
+  // handlePointerDown(event: PointerEvent, location: PointerLocation, state: State): State {
+  //   this.initialLocation = location
+  //   this.resizedRow = location.row
+  //   this.isInScrollableRange = state.cellMatrix.scrollableRange.rows.some(
+  //     (r) => r.idx === this.resizedRow.idx
+  //   )
+  //   return state
+  // }
 
-  handlePointerMove(event: PointerEvent, location: PointerLocation, state: State): State {
-    let linePosition = location.viewportY
-    if (
-      !(
-        (location.row.idx === this.resizedRow.idx &&
-          location.cellY > (state.props?.minRowHeight ?? CellMatrix.MIN_ROW_HEIGHT)) ||
-        location.row.idx > this.resizedRow.idx
-      )
-    ) {
-      const offset = this.getLinePositionOffset(state)
-      linePosition =
-        (state.props?.minRowHeight ?? CellMatrix.MIN_ROW_HEIGHT) + this.resizedRow.top + offset
-    }
-    return { ...state, linePosition, lineOrientation: 'horizontal' }
-  }
+  // handlePointerMove(event: PointerEvent, location: PointerLocation, state: State): State {
+  //   let linePosition = location.viewportY
+  //   if (
+  //     !(
+  //       (location.row.idx === this.resizedRow.idx &&
+  //         location.cellY > (state.props?.minRowHeight ?? CellMatrix.MIN_ROW_HEIGHT)) ||
+  //       location.row.idx > this.resizedRow.idx
+  //     )
+  //   ) {
+  //     const offset = this.getLinePositionOffset(state)
+  //     linePosition =
+  //       (state.props?.minRowHeight ?? CellMatrix.MIN_ROW_HEIGHT) + this.resizedRow.top + offset
+  //   }
+  //   return { ...state, linePosition, lineOrientation: 'horizontal' }
+  // }
 
-  handlePointerUp(event: PointerEvent, location: PointerLocation, state: State): State {
-    const newHeight = this.resizedRow.height + location.viewportY - this.initialLocation.viewportY
-    if (state.props?.onRowResized) {
-      const newRowHeight =
-        newHeight >= (state.props?.minRowHeight ?? CellMatrix.MIN_ROW_HEIGHT)
-          ? newHeight
-          : (state.props?.minRowHeight ?? CellMatrix.MIN_ROW_HEIGHT)
-      state.props.onRowResized(this.resizedRow.rowId, newRowHeight, state.selectedIds)
-    }
-    let focusedLocation = state.focusedLocation
-    if (focusedLocation !== undefined && this.resizedRow.rowId === focusedLocation.row.idx) {
-      const row = { ...focusedLocation.row, height: newHeight }
-      focusedLocation = { ...focusedLocation, row }
-    }
-    return { ...state, linePosition: -1, focusedLocation }
-  }
+  // handlePointerUp(event: PointerEvent, location: PointerLocation, state: State): State {
+  //   const newHeight = this.resizedRow.height + location.viewportY - this.initialLocation.viewportY
+  //   if (state.props?.onRowResized) {
+  //     const newRowHeight =
+  //       newHeight >= (state.props?.minRowHeight ?? CellMatrix.MIN_ROW_HEIGHT)
+  //         ? newHeight
+  //         : (state.props?.minRowHeight ?? CellMatrix.MIN_ROW_HEIGHT)
+  //     state.props.onRowResized(this.resizedRow.rowId, newRowHeight, state.selectedIds)
+  //   }
+  //   let focusedLocation = state.focusedLocation
+  //   if (focusedLocation !== undefined && this.resizedRow.rowId === focusedLocation.row.idx) {
+  //     const row = { ...focusedLocation.row, height: newHeight }
+  //     focusedLocation = { ...focusedLocation, row }
+  //   }
+  //   return { ...state, linePosition: -1, focusedLocation }
+  // }
 
   // Should render ResizeRowHint on pane which has the highest priority
   renderPanePart(state: State, pane: Range): React.ReactNode {

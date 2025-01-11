@@ -1,6 +1,5 @@
 import { cn } from '@/lib/utils'
-import { ChevronDown, ChevronUp } from 'lucide-react'
-import { Button, Group, Input, Label, NumberField } from 'react-aria-components'
+import { Group, Input, NumberField } from 'react-aria-components'
 import { useFormContext } from 'react-hook-form'
 
 type Props = {
@@ -11,14 +10,8 @@ type Props = {
   displayError?: boolean
 }
 
-export default function InputNumber({
-  label,
-  name,
-  fieldClassName,
-  displayError,
-  ...props
-}: Props) {
-  const { register, control, setValue, getValues, watch } = useFormContext()
+export default function InputNumber({ label, name, fieldClassName, displayError }: Props) {
+  const { register, control, setValue, watch } = useFormContext()
   const { error, isTouched } = control.getFieldState(name)
   const registered = register(name)
   const changedValue = watch(name)

@@ -1,50 +1,64 @@
-import * as React from "react";
+import * as React from 'react'
 
 // NOTE: all modules imported below may be imported from '@silevis/reactgrid'
-import { getCellProperty } from "../Functions/getCellProperty";
-import { keyCodes } from "../Functions/keyCodes";
-import { Cell, CellStyle, CellTemplate, Compatible, Id, Uncertain, UncertainCompatible } from "../Model/PublicModel";
-import { isNavigationKey, isAlphaNumericKey, isFunctionKey } from "./keyCodeCheckings";
-import { getCharFromKey } from "./getCharFromKeyCode";
+import { getCellProperty } from '../Functions/getCellProperty'
+import { keyCodes } from '../Functions/keyCodes'
+import {
+  Cell,
+  CellTemplate,
+  Compatible,
+  Id,
+  Uncertain,
+  UncertainCompatible
+} from '../Model/PublicModel'
+import { isNavigationKey, isAlphaNumericKey, isFunctionKey } from './keyCodeCheckings'
+import { getCharFromKey } from './getCharFromKeyCode'
 
 export interface ChevronCell extends Cell {
-  type: "chevron";
-  text: string;
-  isExpanded?: boolean;
-  hasChildren?: boolean;
-  parentId?: Id;
-  indent?: number;
+  type: 'chevron'
+  text: string
+  isExpanded?: boolean
+  hasChildren?: boolean
+  parentId?: Id
+  indent?: number
 }
 
 export class ChevronCellTemplate implements CellTemplate<ChevronCell> {
-  private wasEscKeyPressed = false;
+  private wasEscKeyPressed = false
 
   getCompatibleCell(uncertainCell: Uncertain<ChevronCell>): Compatible<ChevronCell> {
-    const text = getCellProperty(uncertainCell, "text", "string");
-    let isExpanded = false;
+    const text = getCellProperty(uncertainCell, 'text', 'string')
+    let isExpanded = false
     try {
-      isExpanded = getCellProperty(uncertainCell, "isExpanded", "boolean");
+      isExpanded = getCellProperty(uncertainCell, 'isExpanded', 'boolean')
     } catch {
-      isExpanded = true;
+      isExpanded = true
     }
-    let indent = -1;
+    let indent = -1
     try {
-      indent = getCellProperty(uncertainCell, "indent", "number");
+      indent = getCellProperty(uncertainCell, 'indent', 'number')
     } catch {
-      indent = 0;
+      indent = 0
     }
-    let hasChildren = false;
+    let hasChildren = false
     try {
-      hasChildren = getCellProperty(uncertainCell, "hasChildren", "boolean");
+      hasChildren = getCellProperty(uncertainCell, 'hasChildren', 'boolean')
     } catch {
-      hasChildren = false;
+      hasChildren = false
     }
-    const value = parseFloat(text);
-    return { ...uncertainCell, text, value, isExpanded, indent, hasChildren };
+    const value = parseFloat(text)
+    return { ...uncertainCell, text, value, isExpanded, indent, hasChildren }
   }
 
-  update(cell: Compatible<ChevronCell>, cellToMerge: UncertainCompatible<ChevronCell>): Compatible<ChevronCell> {
-    return this.getCompatibleCell({ ...cell, isExpanded: cellToMerge.isExpanded, text: cellToMerge.text });
+  update(
+    cell: Compatible<ChevronCell>,
+    cellToMerge: UncertainCompatible<ChevronCell>
+  ): Compatible<ChevronCell> {
+    return this.getCompatibleCell({
+      ...cell,
+      isExpanded: cellToMerge.isExpanded,
+      text: cellToMerge.text
+    })
   }
 
   handleKeyDown(
@@ -57,42 +71,47 @@ export class ChevronCellTemplate implements CellTemplate<ChevronCell> {
     capsLock: boolean
   ): { cell: Compatible<ChevronCell>; enableEditMode: boolean } {
     if (isFunctionKey(keyCode)) {
-      if (keyCode === keyCodes.F2) return { cell, enableEditMode: true };
-      return { cell, enableEditMode: false };
+      if (keyCode === keyCodes.F2) return { cell, enableEditMode: true }
+      return { cell, enableEditMode: false }
     }
 
-    let enableEditMode = keyCode === keyCodes.POINTER || keyCode === keyCodes.ENTER;
-    const cellCopy = { ...cell };
+    let enableEditMode = keyCode === keyCodes.POINTER || keyCode === keyCodes.ENTER
+    const cellCopy = { ...cell }
 
-    const char = getCharFromKey(key, shift, capsLock);
+    const char = getCharFromKey(key, shift, capsLock)
 
     if (keyCode === keyCodes.SPACE && cellCopy.isExpanded !== undefined && !shift) {
-      cellCopy.isExpanded = !cellCopy.isExpanded;
-    } else if (!ctrl && !alt && isAlphaNumericKey(keyCode) && !(shift && keyCode === keyCodes.SPACE)) {
-      cellCopy.text = char;
-      enableEditMode = true;
+      cellCopy.isExpanded = !cellCopy.isExpanded
+    } else if (
+      !ctrl &&
+      !alt &&
+      isAlphaNumericKey(keyCode) &&
+      !(shift && keyCode === keyCodes.SPACE)
+    ) {
+      cellCopy.text = char
+      enableEditMode = true
     }
-    return { cell: cellCopy, enableEditMode };
+    return { cell: cellCopy, enableEditMode }
   }
 
   handleCompositionEnd(
     cell: Compatible<ChevronCell>,
     eventData: any
   ): { cell: Compatible<ChevronCell>; enableEditMode: boolean } {
-    return { cell: { ...cell, text: eventData }, enableEditMode: true };
+    return { cell: { ...cell, text: eventData }, enableEditMode: true }
   }
 
-  getClassName(cell: Compatible<ChevronCell>, isInEditMode: boolean): string {
-    const isExpanded = cell.hasChildren ? (cell.isExpanded ? "expanded" : "collapsed") : "";
-    const className = cell.className ?? "";
-    return `${isExpanded} ${className}`;
-  }
+  // getClassName(cell: Compatible<ChevronCell>, isInEditMode: boolean): string {
+  //   const isExpanded = cell.hasChildren ? (cell.isExpanded ? "expanded" : "collapsed") : "";
+  //   const className = cell.className ?? "";
+  //   return `${isExpanded} ${className}`;
+  // }
 
-  getStyle(cell: Compatible<ChevronCell>, isInEditMode: boolean): CellStyle {
-    const indent = cell.indent ?? 0;
-    const elementMarginMultiplier = indent * 1.4;
-    return { paddingLeft: `calc(${elementMarginMultiplier}em + 2px)` };
-  }
+  // getStyle(cell: Compatible<ChevronCell>, isInEditMode: boolean): CellStyle {
+  //   const indent = cell.indent ?? 0;
+  //   const elementMarginMultiplier = indent * 1.4;
+  //   return { paddingLeft: `calc(${elementMarginMultiplier}em + 2px)` };
+  // }
 
   render(
     cell: Compatible<ChevronCell>,
@@ -105,8 +124,8 @@ export class ChevronCellTemplate implements CellTemplate<ChevronCell> {
           <div
             className="chevron"
             onPointerDown={(e) => {
-              e.stopPropagation();
-              onCellChanged(this.getCompatibleCell({ ...cell, isExpanded: !cell.isExpanded }), true);
+              e.stopPropagation()
+              onCellChanged(this.getCompatibleCell({ ...cell, isExpanded: !cell.isExpanded }), true)
             }}
           >
             <span className="icon">❯</span>
@@ -121,25 +140,30 @@ export class ChevronCellTemplate implements CellTemplate<ChevronCell> {
         className="rg-input"
         ref={(input) => {
           if (input) {
-            input.focus();
-            input.setSelectionRange(input.value.length, input.value.length);
+            input.focus()
+            input.setSelectionRange(input.value.length, input.value.length)
           }
         }}
         defaultValue={cell.text}
-        onChange={(e) => onCellChanged(this.getCompatibleCell({ ...cell, text: e.currentTarget.value }), false)}
+        onChange={(e) =>
+          onCellChanged(this.getCompatibleCell({ ...cell, text: e.currentTarget.value }), false)
+        }
         onBlur={(e) => {
-          onCellChanged(this.getCompatibleCell({ ...cell, text: e.currentTarget.value }), !this.wasEscKeyPressed);
-          this.wasEscKeyPressed = false;
+          onCellChanged(
+            this.getCompatibleCell({ ...cell, text: e.currentTarget.value }),
+            !this.wasEscKeyPressed
+          )
+          this.wasEscKeyPressed = false
         }}
         onCopy={(e) => e.stopPropagation()}
         onCut={(e) => e.stopPropagation()}
         onPaste={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
-          if (isAlphaNumericKey(e.keyCode) || isNavigationKey(e.keyCode)) e.stopPropagation();
-          if (e.keyCode === keyCodes.ESCAPE) this.wasEscKeyPressed = true;
+          if (isAlphaNumericKey(e.keyCode) || isNavigationKey(e.keyCode)) e.stopPropagation()
+          if (e.keyCode === keyCodes.ESCAPE) this.wasEscKeyPressed = true
         }}
       />
-    );
+    )
   }
 }

@@ -45,6 +45,7 @@ function getRightStickyOffset(
       cellMatrix.ranges.stickyRightRange.width
     return rightStickyOffset
   }
+  return undefined
 }
 
 function getBottomStickyOffset(
@@ -65,6 +66,7 @@ function getBottomStickyOffset(
       cellMatrix.ranges.stickyBottomRange.height
     return bottomStickyOffset
   }
+  return undefined
 }
 
 const calculatedYAxisOffset = (location: Location, state: State): number => {

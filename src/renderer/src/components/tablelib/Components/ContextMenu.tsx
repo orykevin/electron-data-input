@@ -1,16 +1,6 @@
 import * as React from 'react'
 import { State } from '../Model/State'
-import {
-  MenuOption,
-  isBrowserFirefox,
-  i18n,
-  isIOS,
-  isIpadOS,
-  getCompatibleCellAndTemplate,
-  isMacOs,
-  Compatible,
-  Cell
-} from '../../core'
+import { MenuOption, isBrowserFirefox, i18n, isIOS, isIpadOS } from '../../core'
 import { copySelectedRangeToClipboard } from '../Functions/copySelectedRangeToClipboard'
 import { pasteData } from '../Functions/pasteData'
 import { getActiveSelectedRange } from '../Functions/getActiveSelectedRange'
