@@ -1,7 +1,7 @@
 import { database } from '@/db'
 import { FormDataBarang } from '@/page/barang/FormBarang'
 import { barang, harga, hargaLain, unitBarang } from '../../../db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, like } from 'drizzle-orm'
 
 export type DataBarang = Awaited<ReturnType<typeof getBarang>>
 
@@ -283,4 +283,21 @@ export const updateHargaBarang = async (id: number, value: number) => {
     console.log(e)
     throw new Error(`${(e as Error).message}`)
   }
+}
+
+export const getQueryBarang = async (text: string) => {
+  const result = await database.query.barang.findMany({
+    where: like(barang.nama, `%${text.toUpperCase()}%`),
+    limit: 100,
+    with: {
+      unitBarang: {
+        with: {
+          unit: true,
+          harga: true,
+          hargaLain: true
+        }
+      }
+    }
+  })
+  return result
 }
