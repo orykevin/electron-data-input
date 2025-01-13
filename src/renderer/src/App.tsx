@@ -8,14 +8,11 @@ import Barang from './page/barang'
 import useUser from './store/useUserStore'
 import LoginForm from './components/login-form'
 import PengaturanAkun from './page/pengaturan-akun'
+import PelangganPage from './page/pelanggan'
+import SupplierPage from './page/supplier'
+import PenjualanPage from './page/penjualan'
 
 function App(): JSX.Element {
-  // const handleCrateUser = () => {
-  //   createUser('admin', 'admin', true, true).then(() => {
-  //     console.log('success')
-  //   })
-  // }
-
   const { data: userData } = useUser()
 
   if (!userData) return <LoginForm />
@@ -30,7 +27,6 @@ function App(): JSX.Element {
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 h-4" />
               <NavBreadcrumbs />
-              {/* <Button onClick={handleCrateUser}>Create User</Button> */}
             </div>
           </header>
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -38,6 +34,9 @@ function App(): JSX.Element {
               <Route index element={<Main />}></Route>
               <Route path="/barang" element={<Barang />}></Route>
               {userData && <Route path="/pengaturan-akun" element={<PengaturanAkun />}></Route>}
+              <Route path="/daftar-pelanggan" element={<PelangganPage />}></Route>
+              <Route path="/daftar-supplier" element={<SupplierPage />}></Route>
+              <Route path="/buat-faktur-penjualan" element={<PenjualanPage />}></Route>
             </Routes>
 
             <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />

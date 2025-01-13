@@ -21,13 +21,15 @@
     "build:linux": "electron-vite build && electron-builder --linux",
     "db:migrate": "node -r esbuild-register ./src/db/migrate.ts",
     "db:seed": "node -r esbuild-register ./src/db/seed.ts",
-    "rebuild:drizzle": "npm rebuild better-sqlite3",
-    "rebuild:electron": "electron-rebuild -f -w better-sqlite3-electron && electron-builder install-app-deps"
+    "rebuild:drizzle": "pnpm rebuild better-sqlite3",
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3-electron && electron-builder install-app-deps",
+    "push:app": "pnpm drizzle-kit push:sqlite --config ./drizzle.config2.ts"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
     "@hookform/resolvers": "^3.9.1",
+    "@internationalized/date": "^3.6.0",
     "@libsql/client": "^0.14.0",
     "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-collapsible": "^1.1.2",
