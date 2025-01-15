@@ -42,7 +42,7 @@ export const SelectFormInput = ({
         <SelectTrigger
           className={cn(
             // 'w-max px-2 relative inline-flex h-9 items-center overflow-hidden whitespace-nowrap rounded-lg border border-input text-sm shadow-sm shadow-black/5 transition-shadow data-[focus-within]:border-ring data-[placeholder]:text-gray-500 data-[disabled]:opacity-50 data-[focus-within]:outline-none data-[focus-within]:ring-[3px] data-[focus-within]:ring-ring/20',
-            'data-[placeholder]:text-gray-500',
+            'data-[placeholder]:text-gray-500 focus:border-blue-500 focus:border-2 data-[state=open]:border-blue-500 data-[state=open]:border-2',
             className
           )}
         >

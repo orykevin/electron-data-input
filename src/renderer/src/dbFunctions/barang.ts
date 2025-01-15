@@ -285,9 +285,9 @@ export const updateHargaBarang = async (id: number, value: number) => {
   }
 }
 
-export const getQueryBarang = async (text: string) => {
+export const getQueryBarang = async (text: string, field: string) => {
   const result = await database.query.barang.findMany({
-    where: like(barang.nama, `%${text.toUpperCase()}%`),
+    where: like(field === 'kode' ? barang.kode : barang.nama, `%${text.toUpperCase()}%`),
     limit: 100,
     with: {
       unitBarang: {

@@ -11,8 +11,6 @@ import {
   PelangganData,
   updatePelanggan
 } from '@/dbFunctions/pelanggan'
-import { AllUser, getAllUser } from '@/dbFunctions/user'
-import { cn } from '@/lib/utils'
 import useUser from '@/store/useUserStore'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -29,6 +27,7 @@ import React, { useEffect, useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import z from 'zod'
 import DialogUpdatePelanggan from './DialogUpdatePelanggan'
+import useAllPelanggan from '@/store/usePelangganStore'
 
 export const formSchema = z.object({
   kode: z.string(),
@@ -138,6 +137,8 @@ const PelangganPage = () => {
     })
   }, [])
 
+  const { fetchData } = useAllPelanggan()
+
   const onSubmit = async (value: PelanganFormData) => {
     console.log(value)
     // createUser(value.username, value.password, value.isAdmin).then(({ password, ...rest }) => {
@@ -146,6 +147,7 @@ const PelangganPage = () => {
     createPelanggan(value).then(({ updateAt, deletedAt, ...res }) => {
       setData((prev) => [...prev, res])
     })
+    fetchData()
     form.reset()
   }
 
