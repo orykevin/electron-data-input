@@ -2,14 +2,8 @@ import DateFormInput from '@/components/date-form-input'
 import FormInput from '@/components/form-input'
 import HeaderBase from '@/components/header-base'
 import { SelectFormInput } from '@/components/select-form-input'
-import { EditCell, EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
+import { EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { parseDate } from '@internationalized/date'
-import { AllUser, getAllUser } from '@/dbFunctions/user'
-import { cn } from '@/lib/utils'
-import useUser from '@/store/useUserStore'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CellChange,
@@ -21,35 +15,37 @@ import {
   Row,
   SelectionMode
 } from '@silevis/reactgrid'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import z from 'zod'
 import { getPenjualan, Penjualan } from '@/dbFunctions/penjualan'
 import { Plus } from 'lucide-react'
 import useAllPelanggan from '@/store/usePelangganStore'
-import { InputChangeTemplate } from '@/components/tablelib/CellTemplates/InputChangeTemplate'
-// import {
-//   createPenjualan,
-//   deletePenjualan,
-//   getPenjualan,
-//   PenjualanData,
-//   updatePenjualan
-// } from '@/dbFunctions/penjualan'
+import {
+  InputChange,
+  InputChangeTemplate
+} from '@/components/tablelib/CellTemplates/InputChangeTemplate'
+import DialogBarangTabel from './DialogBarangTabel'
 
 export const formSchema = z.object({
-  kode: z.string(),
-  nama: z.string().min(1, { message: 'Nama harus di isi' }),
+  noInvoice: z.string(),
+  pelanggan: z.string(),
+  tanggal: z.date(),
+  jatuhTempo: z.date(),
   alamat: z.string(),
   deskripsi: z.string()
 })
 
-export type PelanganFormData = z.infer<typeof formSchema>
+export type PenjualanFormData = z.infer<typeof formSchema>
 
 type PenjualanDefault = Penjualan & {}
 
 export type PenjualanBarang = PenjualanDefault['penjualanBarang'][number] & {
   isUnitSelectOpen: boolean | undefined
   unitSelected: string | undefined
+  isHargaLainOpen: boolean | undefined
+  hargaLainSelected: string | undefined
+  namaBarang: string
 }
 
 export type DataPenjualanBarang = PenjualanBarang[]
@@ -85,49 +81,6 @@ const typesRow = {
   total: 'number'
 }
 
-const getDataRow = (data: PenjualanBarang, columnId: ColumnId, index: number) => {
-  const barang = data
-
-  switch (columnId) {
-    case 'kodeBarang':
-      return { text: barang.unitBarang?.barang?.kode || '' }
-    case 'namaBarang':
-      return { text: barang.unitBarang?.barang?.nama || '' }
-    case 'jumlah':
-      return { value: barang.jumlah || 1 }
-    case 'unit':
-      return {
-        selectedValue: barang.unitBarang?.id,
-        values: barang.unitBarang?.barang?.unitBarang.map((u) => ({
-          label: u.unit?.unit,
-          value: u.id
-        }))
-      }
-    case 'harga':
-      return { value: barang.harga || 0 }
-    case 'total':
-      return { value: (barang.jumlah || 1) * (barang.harga || 0) || 0 }
-    default:
-      return {}
-  }
-}
-
-const getRows = (data: PenjualanBarang[], columnsOrder: ColumnId[], disabled?: boolean): Row[] => [
-  {
-    rowId: 'header',
-    cells: columnsOrder.map((columnId) => ({ type: 'header', text: columnMap[columnId] }))
-  },
-  ...data.map<Row>((data) => ({
-    rowId: data.id,
-    reorderable: true,
-    cells: columnsOrder.map((columnId, index) => ({
-      type: typesRow[columnId],
-      nonEditable: disabled,
-      ...getDataRow(data, columnId, index)
-    })) as DefaultCellTypes[]
-  }))
-]
-
 const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
   const movedElements = arr.filter((_, idx) => idxs.includes(idx))
   const targetIdx =
@@ -138,7 +91,7 @@ const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
 }
 
 const PenjualanPage = () => {
-  const { data: userData } = useUser()
+  const [isOpen, setIsOpen] = React.useState(false)
   const { data: allPelanggan, fetchData, initialized } = useAllPelanggan()
   const [data, setData] = React.useState<DataPenjualanFull | undefined>(undefined)
   const [listBarang, setListBarang] = React.useState<DataPenjualanBarang>([])
@@ -146,14 +99,43 @@ const PenjualanPage = () => {
   const [isEditable, setIsEditable] = React.useState(true)
   const [selectedIds, setSelectedIds] = React.useState<number | null>(null)
   const [isCash, setIsCash] = React.useState(true)
+  const [openBarang, setOpenBarang] = React.useState<null | {
+    mode: 'kode' | 'nama'
+    text: string
+  }>(null)
 
   const [cellChangesIndex, setCellChangesIndex] = React.useState(() => -1)
   const [cellChanges, setCellChanges] = React.useState<CellChange[][]>(() => [])
 
   const form = useForm({
-    defaultValues: { kode: '', nama: '', alamat: '', deskripsi: '' },
+    defaultValues: {
+      noInvoice: '',
+      pelanggan: '',
+      tanggal: new Date(),
+      jatuhTempo: new Date(),
+      alamat: '',
+      deskripsi: ''
+    },
     resolver: zodResolver(formSchema)
   })
+
+  const tanggalValue = form.watch('tanggal')
+  const pelanggan = form.watch('pelanggan')
+
+  useEffect(() => {
+    if (pelanggan) {
+      const pelangganData = allPelanggan.find((unit) => unit.id.toString() === pelanggan)
+      if (pelangganData && pelangganData.alamat) {
+        form.setValue('alamat', pelangganData.alamat)
+      }
+    }
+  }, [pelanggan])
+
+  useEffect(() => {
+    if (isCash) {
+      form.setValue('jatuhTempo', tanggalValue)
+    }
+  }, [tanggalValue, isCash])
 
   useEffect(() => {
     getPenjualan(1).then((res) => {
@@ -161,24 +143,78 @@ const PenjualanPage = () => {
         const { penjualanBarang } = res
         setData(res)
         setListBarang(
-          penjualanBarang.map((unit) => ({ ...unit, isUnitSelectOpen: false, unitSelected: '' }))
+          penjualanBarang.map((unit) => ({
+            ...unit,
+            isUnitSelectOpen: false,
+            unitSelected: unit.unitBarang?.id.toString() || '',
+            isHargaLainOpen: false,
+            hargaLainSelected: '',
+            namaBarang: unit.unitBarang?.barang?.nama || ''
+          }))
         )
       }
     })
     if (!initialized) fetchData()
   }, [])
 
-  const onSubmit = async (value: PelanganFormData) => {
-    console.log(value)
+  console.log(form.formState.errors)
+
+  const onSubmit = async (value: PenjualanFormData) => {
     // createUser(value.username, value.password, value.isAdmin).then(({ password, ...rest }) => {
     //   setListAkun((prev) => [...prev, rest])
     // })
-
     // createPenjualan(value).then(({ updateAt, deletedAt, ...res }) => {
     //   setData((prev) => [...prev, res])
     // })
     // form.reset()
   }
+
+  const getDataRow = (data: PenjualanBarang, columnId: ColumnId) => {
+    const barang = data
+    switch (columnId) {
+      case 'kodeBarang':
+        return { text: barang.unitBarang?.barang?.kode || '' }
+      case 'namaBarang':
+        return { text: barang?.namaBarang || barang.unitBarang?.barang?.nama || '' }
+      case 'jumlah':
+        return { value: barang.jumlah || 1 }
+      case 'unit':
+        return {
+          selectedValue: barang.unitSelected || '',
+          values: barang.unitBarang?.barang?.unitBarang.map((u) => ({
+            label: u.unit?.unit,
+            value: u.id?.toString() || '0'
+          })),
+          isOpen: barang.isUnitSelectOpen
+        }
+      case 'harga':
+        return { value: barang.harga || 0 }
+      case 'total':
+        return { value: (barang.jumlah || 1) * (barang.harga || 0) || 0, nonEditable: true }
+      default:
+        return {}
+    }
+  }
+
+  const getRows = (
+    data: PenjualanBarang[],
+    columnsOrder: ColumnId[],
+    disabled?: boolean
+  ): Row[] => [
+    {
+      rowId: 'header',
+      cells: columnsOrder.map((columnId) => ({ type: 'header', text: columnMap[columnId] }))
+    },
+    ...data.map<Row>((data) => ({
+      rowId: data.id,
+      reorderable: true,
+      cells: columnsOrder.map((columnId) => ({
+        type: typesRow[columnId],
+        nonEditable: disabled,
+        ...getDataRow(data, columnId)
+      })) as DefaultCellTypes[]
+    }))
+  ]
 
   const rows = getRows(
     listBarang,
@@ -187,7 +223,7 @@ const PenjualanPage = () => {
   )
 
   const applyNewValue = (
-    changes: CellChange<DefaultCellTypes | EditCell>[],
+    changes: CellChange<DefaultCellTypes | InputChange>[],
     prevData: DataPenjualanBarang,
     usePrevValue: boolean = false
   ): DataPenjualanBarang => {
@@ -208,8 +244,35 @@ const PenjualanPage = () => {
         // updatePenjualan(dataRow.id, { [fieldName]: change.newCell.text }).then((res) => {
         //   setData((prev) => prev.map((d) => (d.id === dataIndex ? res : d)))
         // })
-      } else if (change.type === 'edit') {
-        setSelectedIds(dataRow.id)
+      } else if (change.type === 'number') {
+        dataRow[fieldName] = change.newCell.value as never
+      } else if (change.type === 'inputChange') {
+        if (change.columnId === 'kodeBarang') {
+          setOpenBarang({ mode: 'kode', text: change.newCell.text })
+          setIsOpen(true)
+          setSelectedIds(dataRow.id)
+        } else {
+          setOpenBarang({ mode: 'nama', text: change.newCell.text })
+          setIsOpen(true)
+          setSelectedIds(dataRow.id)
+        }
+      } else if (change.type === 'dropdown') {
+        if (
+          change.newCell.selectedValue &&
+          !change.newCell.isOpen &&
+          change.newCell.selectedValue !== change.previousCell.selectedValue
+        ) {
+          dataRow[fieldName] = change.newCell.selectedValue as never
+          dataRow.unitSelected = change.newCell.selectedValue as never
+          if (fieldName === 'selectedUnitId') {
+            // const defaultHargaLain =
+            //   dataRow.unitSelected ===
+            // ?.unit.hargaLain[0]?.id.toString() || '0'
+          }
+        }
+        // dataRow[fieldName] = change.newCell.inputValue as never
+        // CHANGED: set the isOpen property to the value received.
+        dataRow.isUnitSelectOpen = change.newCell.isOpen as never
       } else {
         console.log('ERROR', change.type, dataRow[fieldName])
       }
@@ -345,14 +408,9 @@ const PenjualanPage = () => {
                   </div>
                 }
               />
-              <DateFormInput label="Tanggal Penjualan" />
+              <DateFormInput label="Tanggal Penjualan" name="tanggal" />
               -
-              <DateFormInput
-                label="Tanggal Jatuh Tempo"
-                disabled={isCash}
-                defaultValue={parseDate('2025-01-01')}
-              />
-              -
+              <DateFormInput label="Tanggal Jatuh Tempo" disabled={isCash} name="jatuhTempo" />-
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -363,7 +421,11 @@ const PenjualanPage = () => {
                 Tunai
               </label>
             </div>
-            <FormInput name="deskripsi" label="Deskripsi" />
+            <div className="flex gap-3 items-center">
+              <FormInput name="alamat" label="Alamat" />
+              <FormInput name="deskripsi" label="Deskripsi" />
+            </div>
+
             <div className="w-[calc(100vw-324px)] bg-red-500 fixed bottom-0 border-2 border-gray-500 h-16">
               <Button type="submit" className="!mt-3 w-full h-10">
                 Buat penjualan
@@ -395,12 +457,25 @@ const PenjualanPage = () => {
           <button
             className="flex gap-2 items-center text-xs font-semibold w-full outline-none"
             type="button"
+            onClick={() => {
+              setIsOpen(true)
+              setOpenBarang({ mode: 'kode', text: '' })
+              setSelectedIds(null)
+            }}
           >
             <Plus />
             Tambah Barang
           </button>
         </div>
       </div>
+      <DialogBarangTabel
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        setListBarang={setListBarang}
+        openBarang={openBarang}
+        setOpenBarang={setOpenBarang}
+        selectedIds={selectedIds}
+      />
     </div>
   )
 }
