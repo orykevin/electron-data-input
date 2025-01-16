@@ -133,7 +133,7 @@ const getDataRow = (data: DataBarangFull, columnId: ColumnId) => {
     case 'stockAkhir':
       return { value: data.stockAwal, nonEditable: true }
     case 'editBarang':
-      return { text: data.id.toString(), openedId: 0 }
+      return { text: data.id.toString(), openedId: data.id.toString(), icon: 'pencil' }
     default:
       return {}
   }

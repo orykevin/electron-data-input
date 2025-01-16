@@ -24,7 +24,7 @@ export const SelectFormInput = ({
   displayError,
   additionalComponent
 }: Props) => {
-  const { register, control, setValue, getValues } = useFormContext()
+  const { register, control, setValue, getValues, watch } = useFormContext()
   const { error, isTouched } = control.getFieldState(name)
   const registered = register(name)
 
@@ -34,11 +34,12 @@ export const SelectFormInput = ({
   }
 
   const defaultValue = getValues(name)
+  const value = watch(name)
 
   return (
     <div>
       <label className="block mb-1">{label}</label>
-      <Select onValueChange={handleValueChange} defaultValue={defaultValue}>
+      <Select onValueChange={handleValueChange} defaultValue={defaultValue} value={value}>
         <SelectTrigger
           className={cn(
             // 'w-max px-2 relative inline-flex h-9 items-center overflow-hidden whitespace-nowrap rounded-lg border border-input text-sm shadow-sm shadow-black/5 transition-shadow data-[focus-within]:border-ring data-[placeholder]:text-gray-500 data-[disabled]:opacity-50 data-[focus-within]:outline-none data-[focus-within]:ring-[3px] data-[focus-within]:ring-ring/20',
