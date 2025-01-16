@@ -4,11 +4,18 @@ import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { Store } from 'lucide-react'
 import useUser from '@/store/useUserStore'
+import { createUser } from '@/dbFunctions/user'
 
 const LoginForm = () => {
   const [username, setUserName] = useState('')
   const [password, setPassword] = useState('')
   const { login, error } = useUser()
+
+  const handleCrateUser = () => {
+    createUser('admin', 'admin', true, true).then(() => {
+      console.log('success')
+    })
+  }
 
   const handleLogin = async () => {
     console.log(username, password)
@@ -38,6 +45,8 @@ const LoginForm = () => {
           <Input className="my-2" onChange={(e) => setPassword(e.target.value)} value={password} />
         </div>
         {error && <p className="text-red-500 text-lg font-semibold">{error}</p>}
+        <Button onClick={handleCrateUser}>Create User</Button>
+
         <Button className="w-full !mt-8" onClick={handleLogin}>
           Login
         </Button>

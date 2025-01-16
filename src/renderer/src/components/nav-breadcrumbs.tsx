@@ -27,7 +27,7 @@ const NavBreadcrumbs = () => {
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem key={index}>
               <BreadcrumbLink className="mb-0.5 capitalize font-semibold" href={`/${path}`}>
-                {path}
+                {path.replaceAll('-', ' ')}
               </BreadcrumbLink>
             </BreadcrumbItem>
           </>

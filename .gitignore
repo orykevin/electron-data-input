@@ -5,3 +5,6 @@ out
 *.log*
 *.db
 drizzle
+*db.backup*
+electron.vite.config.mjs
+pnpm-lock.yaml

@@ -7,12 +7,13 @@ import {
   getCellProperty
 } from '@silevis/reactgrid'
 import { Button } from '@/components/ui/button'
-import { Pencil } from 'lucide-react'
+import { Delete, Pencil } from 'lucide-react'
 
 export interface EditCell extends Cell {
   type: 'edit'
   text: string
   openedId: number
+  icon: string
 }
 
 export class EditTemplateCell {
@@ -20,7 +21,9 @@ export class EditTemplateCell {
     const text = getCellProperty(uncertainCell, 'text', 'string')
     const openedId = getCellProperty(uncertainCell, 'openedId', 'number')
     const value = parseFloat(text)
-    return { ...uncertainCell, text, value, openedId }
+    const icon = getCellProperty(uncertainCell, 'icon', 'string')
+
+    return { ...uncertainCell, text, value, openedId, icon }
   }
 
   // handleKeyDown(
@@ -53,50 +56,21 @@ export class EditTemplateCell {
     _isInEditMode: boolean,
     onCellChanged: (cell: Compatible<EditCell>, commit: boolean) => void
   ): React.ReactNode {
-    //   if (!isInEditMode) {
-    //     const flagISO = cell.text.toLowerCase(); // ISO 3166-1, 2/3 letters
-    //     const flagURL = `https://restcountries.eu/data/${flagISO}.svg`;
-    //     const alternativeURL = `https://upload.wikimedia.org/wikipedia/commons/0/04/Nuvola_unknown_flag.svg`;
-    //     return (
-    //       <div
-    //         className="rg-flag-wrapper"
-    //         style={{ backgroundImage: `url(${flagURL}), url(${alternativeURL})` }}
-    //       />
-    //     );
-    //   }
-
     return (
-      // <input
-      //   ref={input => {
-      //     input && input.focus();
-      //   }}
-      //   defaultValue={cell.text}
-      //   onChange={e =>
-      //     onCellChanged(
-      //       this.getCompatibleCell({ ...cell, text: e.currentTarget.value }),
-      //       false
-      //     )
-      //   }
-      //   onCopy={e => e.stopPropagation()}
-      //   onCut={e => e.stopPropagation()}
-      //   onPaste={e => e.stopPropagation()}
-      //   onPointerDown={e => e.stopPropagation()}
-      //   onKeyDown={e => {
-      //   if (isAlphaNumericKey(e.keyCode) || isNavigationKey(e.keyCode))
-      //     e.stopPropagation();
-      //   }}
-      // />
       <Button
         onClick={() =>
           onCellChanged(
             //eslint-disable-next-line
-            this.getCompatibleCell({ ...cell, openedId: Number(cell.text) }),
+            this.getCompatibleCell({
+              ...cell,
+              openedId: Number(cell.text)
+            }),
             true
           )
         }
         className="!w-max !px-2 mx-auto !border-none"
       >
-        <Pencil />
+        {cell.icon === 'delete' ? <Delete /> : <Pencil />}
       </Button>
     )
   }

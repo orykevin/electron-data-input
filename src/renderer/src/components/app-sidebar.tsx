@@ -29,12 +29,40 @@ const data = {
     {
       name: 'Penjualan',
       url: '#',
-      icon: ReceiptText
+      icon: ReceiptText,
+      subMenu: [
+        {
+          name: 'Histori Penjualan',
+          url: '/histori-penjualan'
+        },
+        {
+          name: 'Buat Faktur Penjualan',
+          url: '/buat-faktur-penjualan'
+        },
+        {
+          name: 'Daftar Pelanggan',
+          url: '/daftar-pelanggan'
+        }
+      ]
     },
     {
       name: 'Pembelian',
       url: '#',
-      icon: ShoppingBag
+      icon: ShoppingBag,
+      subMenu: [
+        {
+          name: 'Histori Pembelian',
+          url: '/histori-pembelian'
+        },
+        {
+          name: 'Buat Faktur Pembelian',
+          url: '/buat-faktur-pembelian'
+        },
+        {
+          name: 'Daftar Supplier',
+          url: '/daftar-supplier'
+        }
+      ]
     }
   ]
 }

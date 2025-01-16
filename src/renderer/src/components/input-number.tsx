@@ -20,6 +20,7 @@ export default function InputNumber({ label, name, fieldClassName, displayError 
     <div className={cn('w-full space-y-1', fieldClassName)}>
       <label>{label}</label>
       <NumberField
+        minValue={0}
         formatOptions={{
           style: 'decimal'
         }}
