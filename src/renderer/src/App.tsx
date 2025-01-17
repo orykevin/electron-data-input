@@ -11,6 +11,7 @@ import PengaturanAkun from './page/pengaturan-akun'
 import PelangganPage from './page/pelanggan'
 import SupplierPage from './page/supplier'
 import PenjualanPage from './page/penjualan'
+import HistoriPenjualan from './page/history-penjualan'
 
 function App(): JSX.Element {
   const { data: userData } = useUser()
@@ -36,7 +37,15 @@ function App(): JSX.Element {
               {userData && <Route path="/pengaturan-akun" element={<PengaturanAkun />}></Route>}
               <Route path="/daftar-pelanggan" element={<PelangganPage />}></Route>
               <Route path="/daftar-supplier" element={<SupplierPage />}></Route>
-              <Route path="/buat-faktur-penjualan" element={<PenjualanPage />}></Route>
+              <Route
+                path="/buat-faktur-penjualan"
+                element={<PenjualanPage mode="baru" key={'buat-penjualan'} />}
+              ></Route>
+              <Route path="/histori-penjualan" element={<HistoriPenjualan />}></Route>
+              <Route
+                path="histori-penjualan/edit-faktur-penjualan/:id"
+                element={<PenjualanPage mode="edit" key={'edit-penjualan'} />}
+              ></Route>
             </Routes>
 
             <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />

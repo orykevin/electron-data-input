@@ -98,31 +98,34 @@ export const pelanggan = sqliteTable('pelanggan', {
   ...timeStampRow
 })
 
-export const pemebelian = sqliteTable('pemebelian', {
+export const pembelian = sqliteTable('pembelian', {
   id: int('id').primaryKey({ autoIncrement: true }),
   noInvoice: text('noInvoice').notNull().default(''),
-  tanggal: int('updateAt', { mode: 'timestamp_ms' }),
-  tanggalBayar: int('updateAt', { mode: 'timestamp_ms' }),
+  tanggal: int('tanggal', { mode: 'timestamp_ms' }),
+  tanggalBayar: int('tanggalBayar', { mode: 'timestamp_ms' }),
   supplierId: int('supplierId').references((): AnySQLiteColumn => supplier.id),
   diskon: int('diskon'),
   pajak: int('pajak'),
+  deskripsi: text('deskripsi'),
   ...timeStampRow
 })
 
 export const penjualan = sqliteTable('penjualan', {
   id: int('id').primaryKey({ autoIncrement: true }),
   noInvoice: text('noInvoice').notNull().default(''),
-  tanggal: int('updateAt', { mode: 'timestamp_ms' }),
-  tanggalBayar: int('updateAt', { mode: 'timestamp_ms' }),
+  tanggal: int('tanggal', { mode: 'timestamp_ms' }),
+  tanggalBayar: int('tanggalBayar', { mode: 'timestamp_ms' }),
   pelangganId: int('pelangganId').references((): AnySQLiteColumn => pelanggan.id),
   diskon: int('diskon'),
   pajak: int('pajak'),
+  deskripsi: text('deskripsi'),
+
   ...timeStampRow
 })
 
 export const pembelianBarang = sqliteTable('pembelian_barang', {
   id: int('id').primaryKey({ autoIncrement: true }),
-  pembelianId: int('pembelianId').references((): AnySQLiteColumn => pemebelian.id),
+  pembelianId: int('pembelianId').references((): AnySQLiteColumn => pembelian.id),
   unitBarangId: int('unitBarangId').references((): AnySQLiteColumn => unitBarang.id),
   harga: int('harga').notNull().default(0),
   jumlah: int('jumlah').notNull().default(1),
@@ -131,7 +134,7 @@ export const pembelianBarang = sqliteTable('pembelian_barang', {
 
 export const penjualanBarang = sqliteTable('penjualan_barang', {
   id: int('id').primaryKey({ autoIncrement: true }),
-  penjualanId: int('penjualanId').references((): AnySQLiteColumn => pemebelian.id),
+  penjualanId: int('penjualanId').references((): AnySQLiteColumn => penjualan.id),
   unitBarangId: int('unitBarangId').references((): AnySQLiteColumn => unitBarang.id),
   harga: int('harga').notNull().default(0),
   jumlah: int('jumlah').notNull().default(1),
@@ -139,16 +142,16 @@ export const penjualanBarang = sqliteTable('penjualan_barang', {
 })
 
 export const supplierRelations = relations(supplier, ({ many }) => ({
-  pembelian: many(pemebelian)
+  pembelian: many(pembelian)
 }))
 
 export const pelangganRelations = relations(pelanggan, ({ many }) => ({
   pembelian: many(pelanggan)
 }))
 
-export const pemebelianRelations = relations(pemebelian, ({ one, many }) => ({
+export const pembelianRelations = relations(pembelian, ({ one, many }) => ({
   supplier: one(supplier, {
-    fields: [pemebelian.supplierId],
+    fields: [pembelian.supplierId],
     references: [supplier.id]
   }),
   pembelianBarang: many(pembelianBarang)
@@ -163,9 +166,9 @@ export const penjualanRelations = relations(penjualan, ({ one, many }) => ({
 }))
 
 export const pembelianBarangRelations = relations(pembelianBarang, ({ one }) => ({
-  pembelian: one(pemebelian, {
+  pembelian: one(pembelian, {
     fields: [pembelianBarang.pembelianId],
-    references: [pemebelian.id]
+    references: [pembelian.id]
   }),
   unitBarang: one(unitBarang, {
     fields: [pembelianBarang.unitBarangId],
@@ -174,9 +177,9 @@ export const pembelianBarangRelations = relations(pembelianBarang, ({ one }) => 
 }))
 
 export const penjualanBarangRelations = relations(penjualanBarang, ({ one }) => ({
-  penjualan: one(pemebelian, {
+  penjualan: one(penjualan, {
     fields: [penjualanBarang.penjualanId],
-    references: [pemebelian.id]
+    references: [penjualan.id]
   }),
   unitBarang: one(unitBarang, {
     fields: [penjualanBarang.unitBarangId],

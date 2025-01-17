@@ -1,4 +1,3 @@
-import { EditCell } from '@/components/tablelib/CellTemplates/EditTemplate'
 import { TextEnter, TextEnterCell } from '@/components/tablelib/CellTemplates/TextEnter'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -7,7 +6,6 @@ import useDebounce from '@/lib/hooks/use-debounce'
 import { CellChange, Column, DefaultCellTypes, Id, ReactGrid, Row } from '@silevis/reactgrid'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { DataPenjualanBarang, PenjualanBarang } from '.'
-import { set } from 'react-hook-form'
 
 type Props = {
   isOpen: boolean
@@ -71,7 +69,8 @@ const getDataRow = (data: DataFullBarang, columnId: ColumnId) => {
           data?.unitBarang?.map((u) => ({
             label: u.unit?.unit,
             value: u.id.toString()
-          })) || []
+          })) || [],
+        isOpen: data.isUnitOpen
       }
     case 'harga':
       return { value: data.unitBarang[selectedIndex]?.harga?.harga || 0 }
@@ -82,7 +81,8 @@ const getDataRow = (data: DataFullBarang, columnId: ColumnId) => {
           data.unitBarang[selectedIndex]?.hargaLain?.map((u) => ({
             label: u.harga || '',
             value: u.id.toString()
-          })) || []
+          })) || [],
+        isOpen: data.isHargaLainOpen
       }
     default:
       return {}
@@ -244,9 +244,72 @@ const DialogBarangTabel = ({
     )
   }, [data])
 
-  useEffect(() => {
-    getQueryBarang('', 'nama').then((res) => handleChangeData(res))
-  }, [])
+  // useEffect(() => {
+  //   getQueryBarang('', 'nama').then((res) => handleChangeData(res))
+  // }, [])
+
+  const handleDropdownChanges = (change: CellChange<DefaultCellTypes | TextEnter>) => {
+    const dataSelected = data.find((d) => d.id === change.rowId)
+    if (dataSelected) {
+      const unitBarangIdx = dataSelected.unitBarang.findIndex(
+        (d) => d.id.toString() === dataSelected.selectedUnit
+      )
+      const unitBarang = dataSelected.unitBarang[unitBarangIdx]
+      const hargaLain =
+        change.type === 'dropdown'
+          ? unitBarang.hargaLain.find((d) => d.id.toString() === change.newCell.selectedValue)
+          : null
+      if (selectedIds !== null) {
+        setListBarang((prev) => {
+          let listData = [...prev]
+          const selectedBarangIdx = listData.findIndex((d) => d.id === selectedIds)
+          if (selectedBarangIdx >= 0) {
+            const updatedData = listData[selectedBarangIdx]
+
+            listData[selectedBarangIdx] = {
+              ...updatedData,
+              unitBarang: {
+                barang: dataSelected,
+                harga: unitBarang?.harga || null,
+                hargaLain: unitBarang?.hargaLain || null,
+                id: unitBarang?.id || 0,
+                unit: unitBarang?.unit || null
+              },
+              namaBarang: dataSelected.nama,
+              unitSelected: dataSelected.selectedUnit || '',
+              harga: hargaLain?.harga || unitBarang?.harga?.harga || 0
+            }
+          }
+          return listData
+        })
+      } else {
+        setListBarang((prev) => {
+          const dataBarang: PenjualanBarang = {
+            id: 0 - prev.length,
+            harga: hargaLain?.harga || unitBarang?.harga?.harga || 0,
+            unitBarang: {
+              barang: dataSelected,
+              harga: unitBarang?.harga || null,
+              hargaLain: unitBarang?.hargaLain || null,
+              id: unitBarang?.id || 0,
+              unit: unitBarang?.unit || null
+            },
+            unitSelected: unitBarang?.id?.toString() || '',
+            jumlah: 1,
+            hargaLainSelected: undefined,
+            isHargaLainOpen: false,
+            isUnitSelectOpen: false,
+            createdAt: new Date(),
+            namaBarang: dataSelected.nama
+          }
+          return [...prev, dataBarang!]
+        })
+      }
+      setIsOpen(false)
+      setMode(null)
+      setOpenBarang(null)
+    }
+  }
 
   const applyNewValue = (
     changes: CellChange<DefaultCellTypes | TextEnter>[],
@@ -267,66 +330,27 @@ const DialogBarangTabel = ({
       console.log(change, 'change')
       if (change.type === 'textEnter') {
         if (change.newCell.isSelected) {
-          const dataSelected = data.find((d) => d.id === change.rowId)
-          // console.log(
-          //   data.find((d) => d.id === change.rowId),
-          //   'data'
-          // ),
-          console.log(dataSelected, 'dataSelected')
-          if (dataSelected) {
-            const unitBarang = dataSelected.unitBarang[0]
-            if (selectedIds !== null) {
-              setListBarang((prev) => {
-                let listData = [...prev]
-                const selectedBarangIdx = listData.findIndex((d) => d.id === selectedIds)
-                if (selectedBarangIdx >= 0) {
-                  const updatedData = listData[selectedBarangIdx]
-                  listData[selectedBarangIdx] = {
-                    ...updatedData,
-                    unitBarang: {
-                      barang: dataSelected,
-                      harga: dataSelected.unitBarang[0]?.harga || null,
-                      hargaLain: dataSelected.unitBarang[0]?.hargaLain || null,
-                      id: dataSelected.unitBarang[0]?.id || 0,
-                      unit: dataSelected.unitBarang[0]?.unit || null
-                    },
-                    namaBarang: dataSelected.nama,
-                    unitSelected: dataSelected.unitBarang[0]?.id?.toString() || ''
-                  }
-                }
-                console.log(listData, selectedBarangIdx, 'listDatass')
-                return listData
-              })
-            } else {
-              setListBarang((prev) => {
-                const dataBarang: PenjualanBarang = {
-                  id: 0 - prev.length,
-                  harga: unitBarang?.harga?.harga || 0,
-                  unitBarang: {
-                    barang: dataSelected,
-                    harga: unitBarang?.harga || null,
-                    hargaLain: unitBarang?.hargaLain || null,
-                    id: unitBarang?.id || 0,
-                    unit: unitBarang?.unit || null
-                  },
-                  unitSelected: unitBarang.id?.toString() || '',
-                  jumlah: 1,
-                  hargaLainSelected: undefined,
-                  isHargaLainOpen: false,
-                  isUnitSelectOpen: false,
-                  createdAt: new Date(),
-                  namaBarang: dataSelected.nama
-                }
-                return [...prev, dataBarang!]
-              })
-            }
-            setIsOpen(false)
-            setMode(null)
-            setOpenBarang(null)
-          }
-        } else {
-          console.log('ERROR', change.type, dataRow[fieldName])
+          handleDropdownChanges(change)
         }
+      } else if (change.type === 'dropdown') {
+        let selectedField = change.columnId === 'unit' ? 'selectedUnit' : 'selectedHargaLain'
+        let isOpenState = change.columnId === 'unit' ? 'isUnitOpen' : 'isHargaLainOpen'
+        if (
+          change.newCell.selectedValue &&
+          !change.newCell.isOpen &&
+          change.newCell.selectedValue !== change.previousCell.selectedValue
+        ) {
+          dataRow[selectedField] = change.newCell.selectedValue as never
+          if (change.columnId === 'hargaLain') {
+            handleDropdownChanges(change)
+          }
+          console.log(change, 'selecting changes')
+        }
+        // dataRow[fieldName] = change.newCell.inputValue as never
+        // CHANGED: set the isOpen property to the value received.
+        dataRow[isOpenState] = change.newCell.isOpen as never
+      } else {
+        console.log('ERROR', change.type, dataRow[fieldName])
       }
     })
     return [...prevData]
@@ -354,8 +378,6 @@ const DialogBarangTabel = ({
     })
   }
 
-  console.log(mode, 'mode')
-
   return (
     <Dialog
       open={isOpen}
@@ -377,6 +399,7 @@ const DialogBarangTabel = ({
             mode={mode}
           />
         )}
+
         <ReactGrid
           rows={rows}
           columns={columns}
@@ -384,7 +407,6 @@ const DialogBarangTabel = ({
           onColumnResized={handleColumnResize}
           enableRowSelection
           initialFocusLocation={{ rowId: data[0]?.id, columnId: mode || 'kode' }}
-          // focusLocation={{ rowId: 5149, columnId: mode }}
           customCellTemplates={{
             textEnter: new TextEnterCell()
           }}

@@ -265,13 +265,6 @@ export class InputChangeTemplate implements CellTemplate<InputChange> {
       }
     }, [debouncedText])
 
-    // if (!isInEditMode) {
-    //   const isValid = cell.validator ? cell.validator(cell.text) : true
-    //   const cellText = cell.text || cell.placeholder || ''
-    //   const textToDisplay = !isValid && cell.errorMessage ? cell.errorMessage : cellText
-    //   return cell.renderer ? cell.renderer(textToDisplay) : textToDisplay
-    // }
-
     return (
       <input
         className="rg-input w-full"

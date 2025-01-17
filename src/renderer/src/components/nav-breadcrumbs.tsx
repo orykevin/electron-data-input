@@ -1,12 +1,11 @@
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb'
 import { Home } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 const NavBreadcrumbs = () => {
   const location = useLocation()
@@ -18,17 +17,17 @@ const NavBreadcrumbs = () => {
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem className="hidden md:block">
-          <BreadcrumbLink href="/">
+          <Link to="/">
             <Home size={18} />
-          </BreadcrumbLink>
+          </Link>
         </BreadcrumbItem>
         {paths.map((path, index) => (
           <>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem key={index}>
-              <BreadcrumbLink className="mb-0.5 capitalize font-semibold" href={`/${path}`}>
+              <Link className="mb-0.5 capitalize font-semibold" to={`/${path}`}>
                 {path.replaceAll('-', ' ')}
-              </BreadcrumbLink>
+              </Link>
             </BreadcrumbItem>
           </>
         ))}
