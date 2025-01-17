@@ -73,6 +73,18 @@ export const getPenjualan = async (id: number) => {
   })
 }
 
+export type AllPenjualanType = Awaited<ReturnType<typeof getAllPenjualan>>
+
+export const getAllPenjualan = async () => {
+  return await database.query.penjualan.findMany({
+    columns: {
+      deletedAt: false,
+      updateAt: false
+    },
+    with: { penjualanBarang: { columns: { deletedAt: false, updateAt: false } } }
+  })
+}
+
 export const savePenjualan = async (
   formData: PenjualanFormData,
   listPenjualan: DataPenjualanBarang
@@ -107,5 +119,89 @@ export const savePenjualan = async (
     return true
   } catch (e) {
     throw new Error('Error whenn create penjualan')
+  }
+}
+
+export const updatePenjualan = async (
+  id: number,
+  formData: PenjualanFormData,
+  listPenjualan: DataPenjualanBarang
+) => {
+  try {
+    const listBarang = await database.query.penjualanBarang.findMany({
+      where: eq(penjualanBarang.penjualanId, id)
+    })
+
+    await Promise.all(
+      listBarang.map(async (b, i) => {
+        const newPenjualan = listPenjualan[i]
+        if (!newPenjualan) {
+          await database.delete(penjualanBarang).where(eq(penjualanBarang.id, b.id))
+        } else {
+          await database
+            .update(penjualanBarang)
+            .set({
+              unitBarangId: newPenjualan.unitSelected
+                ? Number(newPenjualan.unitSelected)
+                : newPenjualan.unitBarang?.id,
+              updateAt: new Date(),
+              harga: newPenjualan.harga,
+              jumlah: newPenjualan.jumlah
+            })
+            .where(eq(penjualanBarang.id, b.id))
+        }
+      })
+    )
+
+    if (listPenjualan.length > listBarang.length) {
+      const restListPenjualan = listPenjualan.slice(listBarang.length)
+
+      await Promise.all(
+        restListPenjualan.map(async (h) => {
+          await database.insert(penjualanBarang).values({
+            unitBarangId: h.unitSelected ? Number(h.unitSelected) : h.unitBarang?.id,
+            harga: h.harga,
+            jumlah: h.jumlah,
+            penjualanId: id
+          })
+        })
+      )
+    }
+
+    await database
+      .update(penjualan)
+      .set({
+        noInvoice: formData.noInvoice,
+        pelangganId: Number(formData.pelanggan),
+        tanggal: formData.tanggal,
+        tanggalBayar: formData.jatuhTempo,
+        deskripsi: formData.deskripsi,
+        pajak: formData.pajak,
+        diskon: formData.diskon
+      })
+      .where(eq(penjualan.id, id))
+
+    return true
+  } catch (e) {
+    throw new Error('Error ketika menyimpan perubahan penjualan')
+  }
+}
+
+export const deletePenjualan = async (id: number) => {
+  try {
+    const listBarang = await database.query.penjualanBarang.findMany({
+      where: eq(penjualanBarang.penjualanId, id)
+    })
+
+    await Promise.all(
+      listBarang.map(async (b) => {
+        await database.delete(penjualanBarang).where(eq(penjualanBarang.id, b.id))
+      })
+    )
+
+    await database.delete(penjualan).where(eq(penjualan.id, id))
+    return true
+  } catch (e) {
+    throw new Error('Error when delete penjualan')
   }
 }

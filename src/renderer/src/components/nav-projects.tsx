@@ -56,7 +56,7 @@ export function NavProjects({
                               'bg-gray-200/90 font-semibold'
                           )}
                         >
-                          <Link to={subItem.url}>
+                          <Link to={subItem.url} replace={true}>
                             <span>{subItem.name}</span>
                           </Link>
                         </SidebarMenuSubButton>

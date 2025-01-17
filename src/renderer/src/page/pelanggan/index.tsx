@@ -2,8 +2,6 @@ import FormInput from '@/components/form-input'
 import HeaderBase from '@/components/header-base'
 import { EditCell, EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import {
   createPelanggan,
   deletePelanggan,
@@ -11,7 +9,6 @@ import {
   PelangganData,
   updatePelanggan
 } from '@/dbFunctions/pelanggan'
-import useUser from '@/store/useUserStore'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CellChange,
@@ -23,7 +20,7 @@ import {
   Row,
   SelectionMode
 } from '@silevis/reactgrid'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import z from 'zod'
 import DialogUpdatePelanggan from './DialogUpdatePelanggan'
@@ -77,7 +74,7 @@ const getDataRow = (data: DataPelangganFull, columnId: ColumnId) => {
     case 'deskripsi':
       return { text: data?.deskripsi || '' }
     case 'editBarang':
-      return { text: data.id.toString(), openedId: 0 }
+      return { text: data.id.toString(), openedId: data.id + 1, icon: 'edit' }
     default:
       return {}
   }
@@ -113,11 +110,8 @@ const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
 }
 
 const PelangganPage = () => {
-  const { data: userData } = useUser()
-
   const [data, setData] = React.useState<DataPelangganFull[]>([])
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
-  const [isEditable, setIsEditable] = React.useState(true)
   const [selectedIds, setSelectedIds] = React.useState<number | null>(null)
   const selectedPelanggan = data.find((d) => d.id === selectedIds) || null
 
@@ -153,8 +147,7 @@ const PelangganPage = () => {
 
   const rows = getRows(
     data,
-    columns.map((c) => c.columnId as ColumnId),
-    !isEditable
+    columns.map((c) => c.columnId as ColumnId)
   )
 
   const applyNewValue = (

@@ -13,8 +13,8 @@ export const LinkButtonIcon = ({ icon, className, isActive, children, ...props }
   return (
     <Link
       className={cn(
-        buttonVariants({ variant: 'outline' }),
-        'bg-inherit',
+        buttonVariants({ variant: 'default' }),
+        'bg-inherit border-gray-200',
         className,
         isActive && 'bg-primary-foreground border-none'
       )}

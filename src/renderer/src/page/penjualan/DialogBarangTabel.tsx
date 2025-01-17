@@ -1,22 +1,11 @@
-import { EditCell } from '@/components/tablelib/CellTemplates/EditTemplate'
 import { TextEnter, TextEnterCell } from '@/components/tablelib/CellTemplates/TextEnter'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { DataBarang, getQueryBarang } from '@/dbFunctions/barang'
 import useDebounce from '@/lib/hooks/use-debounce'
-import {
-  CellChange,
-  Column,
-  DefaultCellTypes,
-  DropdownCell,
-  Id,
-  ReactGrid,
-  Row
-} from '@silevis/reactgrid'
+import { CellChange, Column, DefaultCellTypes, Id, ReactGrid, Row } from '@silevis/reactgrid'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { DataPenjualanBarang, PenjualanBarang } from '.'
-import { set } from 'react-hook-form'
-import { is } from 'drizzle-orm'
 
 type Props = {
   isOpen: boolean
@@ -410,19 +399,18 @@ const DialogBarangTabel = ({
             mode={mode}
           />
         )}
-        {data.length > 0 && (
-          <ReactGrid
-            rows={rows}
-            columns={columns}
-            onCellsChanged={handleChanges}
-            onColumnResized={handleColumnResize}
-            enableRowSelection
-            initialFocusLocation={{ rowId: data[0]?.id, columnId: mode || 'kode' }}
-            customCellTemplates={{
-              textEnter: new TextEnterCell()
-            }}
-          />
-        )}
+
+        <ReactGrid
+          rows={rows}
+          columns={columns}
+          onCellsChanged={handleChanges}
+          onColumnResized={handleColumnResize}
+          enableRowSelection
+          initialFocusLocation={{ rowId: data[0]?.id, columnId: mode || 'kode' }}
+          customCellTemplates={{
+            textEnter: new TextEnterCell()
+          }}
+        />
       </DialogContent>
     </Dialog>
   )
