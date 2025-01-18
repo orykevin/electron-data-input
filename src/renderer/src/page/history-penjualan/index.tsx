@@ -1,25 +1,54 @@
+import CalendarInput, { RangeValue } from '@/components/calendar-input'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 import { LinkButtonIcon } from '@/components/ui/link-button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { AllPenjualanType, deletePenjualan, getAllPenjualan } from '@/dbFunctions/penjualan'
 import { useToast } from '@/lib/hooks/use-toast'
+import { getFirstDateOfMonth, getLastDateOfMonth } from '@/lib/utils'
 import { getMonthShortName, getTotalAfterTax } from '@/misc/utils'
 import useAllPelanggan from '@/store/usePelangganStore'
+import { getLocalTimeZone, now } from '@internationalized/date'
 import { Delete, Pencil } from 'lucide-react'
 import React, { useEffect } from 'react'
-import { FormProvider, useForm } from 'react-hook-form'
+import { DateValue } from 'react-aria-components'
+
+type FilterProps = {
+  date: RangeValue<DateValue> | null
+  pelanggan: string | null
+}
 
 const HistoriPenjualan = () => {
-  const form = useForm()
   const [data, setData] = React.useState<AllPenjualanType>([])
   const { data: allPelanggan, fetchData } = useAllPelanggan()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState<number | null>(null)
+
+  const [filter, setFilter] = React.useState<FilterProps>({
+    date: {
+      start: getFirstDateOfMonth(now(getLocalTimeZone())),
+      end: getLastDateOfMonth(now(getLocalTimeZone()))
+    },
+    pelanggan: null
+  })
+
   const { toast } = useToast()
 
-  useEffect(() => {
-    getAllPenjualan().then((res) => setData(res))
-    if (allPelanggan.length === 0) fetchData()
-  }, [])
+  const clearFilter = () => {
+    setFilter({
+      date: {
+        start: getFirstDateOfMonth(now(getLocalTimeZone())),
+        end: getLastDateOfMonth(now(getLocalTimeZone()))
+      },
+      pelanggan: null
+    })
+  }
 
   const handleDeletePenjualan = () => {
     if (!isDeleteDialogOpen) return
@@ -40,16 +69,48 @@ const HistoriPenjualan = () => {
       })
   }
 
-  console.log(allPelanggan)
+  useEffect(() => {
+    const pelangganId = Number(filter.pelanggan)
+    const startDate = filter.date?.start.toDate(getLocalTimeZone())
+    const endDate = filter.date?.end.toDate(getLocalTimeZone())
+    getAllPenjualan(pelangganId, startDate!, endDate!).then((res) => setData(res))
+  }, [filter])
+
+  useEffect(() => {
+    if (allPelanggan.length === 0) fetchData()
+  }, [])
 
   return (
     <div>
       <div>
-        <p className="text-sm font-semibold">History Penjualan</p>
+        <p className="text-sm font-semibold mb-4">Filter Penjualan</p>
+        <div className="flex gap-3 items-end pb-3 mb-3 border-b border-gray-200">
+          <div>
+            <CalendarInput
+              label="Tanggal Faktur"
+              onChange={(data) => setFilter({ ...filter, date: data })}
+              defaultValue={filter?.date || undefined}
+              value={filter?.date || undefined}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs">Pilih pelanggan</Label>
+            <Select onValueChange={(value) => setFilter({ ...filter, pelanggan: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih pelanggan" />
+              </SelectTrigger>
+              <SelectContent>
+                {allPelanggan.map((pelanggan) => (
+                  <SelectItem key={pelanggan.id} value={pelanggan.id.toString()}>
+                    {pelanggan.nama}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={clearFilter}>Clear</Button>
+        </div>
       </div>
-      <FormProvider {...form}>
-        <form></form>
-      </FormProvider>
       <div>
         {data.map((item) => {
           const pelanggan = allPelanggan.find((pelanggan) => pelanggan.id === item.pelangganId)
@@ -69,9 +130,9 @@ const HistoriPenjualan = () => {
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold">{pelanggan?.nama || '-'}</p>
+                  <p className="text-xs font-semibold">{item?.noInvoice || '-'}</p>
                   <p className="text-[16px] leading-[15px] text-gray-700">
-                    {pelanggan?.alamat || '-'}
+                    {pelanggan?.nama || '-'}
                   </p>
                 </div>
               </div>

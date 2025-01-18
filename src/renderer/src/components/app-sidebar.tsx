@@ -23,8 +23,22 @@ const data = {
     },
     {
       name: 'Barang',
-      url: '/barang',
-      icon: Package
+      url: '#',
+      icon: Package,
+      subMenu: [
+        {
+          name: 'List Barang',
+          url: '/list-barang'
+        },
+        {
+          name: 'Pengaturan Unit',
+          url: '/pengaturan-unit'
+        },
+        {
+          name: 'Histori Barang',
+          url: '/histori-barang'
+        }
+      ]
     },
     {
       name: 'Penjualan',
