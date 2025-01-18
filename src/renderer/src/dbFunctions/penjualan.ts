@@ -1,5 +1,5 @@
 import { database } from '@/db'
-import { eq } from 'drizzle-orm'
+import { and, eq, gte, lte } from 'drizzle-orm'
 import { penjualan, penjualanBarang } from '../../../db/schema'
 import { DataPenjualanBarang, PenjualanFormData } from '@/page/penjualan'
 
@@ -75,13 +75,17 @@ export const getPenjualan = async (id: number) => {
 
 export type AllPenjualanType = Awaited<ReturnType<typeof getAllPenjualan>>
 
-export const getAllPenjualan = async () => {
+export const getAllPenjualan = async (id: null | number, startDate: Date, endDate: Date) => {
+  const selectedId = id ? eq(penjualan.pelangganId, id) : undefined
+
   return await database.query.penjualan.findMany({
     columns: {
       deletedAt: false,
       updateAt: false
     },
-    with: { penjualanBarang: { columns: { deletedAt: false, updateAt: false } } }
+    with: { penjualanBarang: { columns: { deletedAt: false, updateAt: false } } },
+    where: and(gte(penjualan.tanggal, startDate), lte(penjualan.tanggal, endDate), selectedId),
+    orderBy: penjualan.tanggal
   })
 }
 

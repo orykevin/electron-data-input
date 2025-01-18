@@ -27,14 +27,15 @@ import {
 } from '@/components/tablelib/CellTemplates/InputChangeTemplate'
 import DialogBarangTabel from './DialogBarangTabel'
 import DialogUpdatePelanggan from '../pelanggan/DialogUpdatePelanggan'
-import { formatWithThousandSeparator } from '@/lib/utils'
+import { formatWithThousandSeparator, generateInvoceKode } from '@/lib/utils'
 import InputNumber from '@/components/input-number'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '@/lib/hooks/use-toast'
+import { getTableSequence } from '@/dbFunctions/sequence'
 
 export const formSchema = z.object({
-  noInvoice: z.string(),
-  pelanggan: z.string(),
+  noInvoice: z.string().min(1, { message: 'No Invoice harus diisi' }),
+  pelanggan: z.string().min(1, { message: 'Pelanggan harus diisi' }),
   tanggal: z.date(),
   jatuhTempo: z.date(),
   alamat: z.string(),
@@ -108,6 +109,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
   const [selectedIds, setSelectedIds] = React.useState<number | null>(null)
   const [isCash, setIsCash] = React.useState(true)
+  const [kodeSequence, setKodeSequence] = React.useState<number | null>(null)
   const [openBarang, setOpenBarang] = React.useState<null | {
     mode: 'kode' | 'nama'
     text: string
@@ -201,18 +203,34 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
       setData(undefined)
       setListBarang([])
       form.reset()
+      getTableSequence('penjualan').then((res) => {
+        setKodeSequence(res)
+        if (res) form.setValue('noInvoice', generateInvoceKode(res))
+      })
     }
     if (!initialized) fetchData()
   }, [])
 
   const onSubmit = async (value: PenjualanFormData) => {
     if (mode === 'baru') {
+      if (!listBarang.length) {
+        toast({ title: 'Error', description: 'Barang belum dipilih' })
+        return
+      }
       savePenjualan(value, listBarang).then((res) => {
+        console.log(res, 'res sub')
         if (res) {
           toast({ title: 'Success', description: 'Penjualan berhasil disimpan' })
           form.reset()
           setListBarang([])
           setData(undefined)
+          setKodeSequence((prev) => {
+            if (prev !== null) {
+              form.setValue('noInvoice', generateInvoceKode((kodeSequence || prev) + 1))
+              return prev + 1
+            }
+            return null
+          })
         }
       })
     } else {
