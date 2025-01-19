@@ -13,6 +13,8 @@ import SupplierPage from './page/supplier'
 import PenjualanPage from './page/penjualan'
 import HistoriPenjualan from './page/history-penjualan'
 import PengaturanUnit from './page/pengaturan-unit'
+import PembelianPage from './page/pembelian'
+import HistoriPembelian from './page/history-pembelian'
 
 function App(): JSX.Element {
   const { data: userData } = useUser()
@@ -44,9 +46,18 @@ function App(): JSX.Element {
                 element={<PenjualanPage mode="baru" key={'buat-penjualan'} />}
               ></Route>
               <Route path="/histori-penjualan" element={<HistoriPenjualan />}></Route>
+              <Route path="/histori-pembelian" element={<HistoriPembelian />}></Route>
               <Route
                 path="histori-penjualan/edit-faktur-penjualan/:id"
                 element={<PenjualanPage mode="edit" key={'edit-penjualan'} />}
+              ></Route>
+              <Route
+                path="/buat-faktur-pembelian"
+                element={<PembelianPage mode="baru" key={'buat-pembelian'} />}
+              ></Route>
+              <Route
+                path="histori-pembelian/edit-faktur-pembelian/:id"
+                element={<PembelianPage mode="edit" key={'edit-pembelian'} />}
               ></Route>
             </Routes>
 
