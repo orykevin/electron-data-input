@@ -18,25 +18,24 @@ import {
 import React, { useEffect } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import z from 'zod'
-import { getPenjualan, Penjualan, savePenjualan, updatePenjualan } from '@/dbFunctions/penjualan'
+import { getPembelian, Pembelian, savePembelian, updatePembelian } from '@/dbFunctions/pembelian'
 import { Plus } from 'lucide-react'
-import useAllPelanggan from '@/store/usePelangganStore'
+import useAllSupplier from '@/store/useSupplierStore'
 import {
   InputChange,
   InputChangeTemplate
 } from '@/components/tablelib/CellTemplates/InputChangeTemplate'
 import DialogBarangTabel from './DialogBarangTabel'
-import DialogUpdatePelanggan from '../pelanggan/DialogUpdatePelanggan'
+import DialogUpdateSupplier from '../supplier/DialogUpdateSupplier'
 import { formatWithThousandSeparator, generateInvoceKode } from '@/lib/utils'
 import InputNumber from '@/components/input-number'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '@/lib/hooks/use-toast'
-import { getTableSequence } from '@/dbFunctions/sequence'
 import { LinkButtonIcon } from '@/components/ui/link-button'
 
 export const formSchema = z.object({
   noInvoice: z.string().min(1, { message: 'No Invoice harus diisi' }),
-  pelanggan: z.string().min(1, { message: 'Pelanggan harus diisi' }),
+  supplier: z.string().min(1, { message: 'Supplier harus diisi' }),
   tanggal: z.date(),
   jatuhTempo: z.date(),
   alamat: z.string(),
@@ -45,11 +44,11 @@ export const formSchema = z.object({
   diskon: z.number()
 })
 
-export type PenjualanFormData = z.infer<typeof formSchema>
+export type PembelianFormData = z.infer<typeof formSchema>
 
-type PenjualanDefault = Penjualan & {}
+type PembelianDefault = Pembelian & {}
 
-export type PenjualanBarang = PenjualanDefault['penjualanBarang'][number] & {
+export type PembelianBarang = PembelianDefault['pembelianBarang'][number] & {
   isUnitSelectOpen: boolean | undefined
   unitSelected: string | undefined
   isHargaLainOpen: boolean | undefined
@@ -57,9 +56,9 @@ export type PenjualanBarang = PenjualanDefault['penjualanBarang'][number] & {
   namaBarang: string
 }
 
-export type DataPenjualanBarang = PenjualanBarang[]
+export type DataPembelianBarang = PembelianBarang[]
 
-export type DataPenjualanFull = Penjualan
+export type DataPembelianFull = Pembelian
 
 const columnMap = {
   kodeBarang: 'Kode Barang',
@@ -102,11 +101,11 @@ const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
   return [...leftSide, ...movedElements, ...rightSide]
 }
 
-const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
+const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   const [isOpen, setIsOpen] = React.useState(false)
-  const { data: allPelanggan, fetchData, initialized } = useAllPelanggan()
-  const [data, setData] = React.useState<DataPenjualanFull | undefined>(undefined)
-  const [listBarang, setListBarang] = React.useState<DataPenjualanBarang>([])
+  const { data: allSupplier, fetchData, initialized } = useAllSupplier()
+  const [data, setData] = React.useState<DataPembelianFull | undefined>(undefined)
+  const [listBarang, setListBarang] = React.useState<DataPembelianBarang>([])
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
   const [selectedIds, setSelectedIds] = React.useState<number | null>(null)
   const [isCash, setIsCash] = React.useState(true)
@@ -115,7 +114,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
     mode: 'kode' | 'nama'
     text: string
   }>(null)
-  const [selectedPelanggan, setSelectedPelanggan] = React.useState<number | null>(null)
+  const [selectedSupplier, setSelectedSupplier] = React.useState<number | null>(null)
 
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -127,10 +126,10 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   const form = useForm({
     defaultValues: {
       noInvoice: data?.noInvoice || '',
-      pelanggan: data?.pelangganId?.toString() || '',
+      supplier: data?.supplierId?.toString() || '',
       tanggal: data?.tanggal || new Date(),
       jatuhTempo: data?.tanggalBayar || new Date(),
-      alamat: allPelanggan.find((unit) => unit.id === selectedPelanggan)?.alamat || '',
+      alamat: allSupplier.find((unit) => unit.id === selectedSupplier)?.alamat || '',
       deskripsi: data?.deskripsi || '',
       pajak: data?.pajak || 0,
       diskon: data?.diskon || 0
@@ -139,7 +138,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   })
 
   const tanggalValue = form.watch('tanggal')
-  const pelanggan = form.watch('pelanggan')
+  const supplier = form.watch('supplier')
   const pajak = form.watch('pajak')
   const diskon = form.watch('diskon')
 
@@ -151,23 +150,23 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   }, [diskon])
 
   useEffect(() => {
-    if (selectedPelanggan) {
-      const pelangganData = allPelanggan.find((unit) => unit.id === selectedPelanggan)
-      if (pelangganData) {
-        form.setValue('pelanggan', pelangganData.id.toString())
-        form.setValue('alamat', pelangganData?.alamat || '')
+    if (selectedSupplier) {
+      const supplierData = allSupplier.find((unit) => unit.id === selectedSupplier)
+      if (supplierData) {
+        form.setValue('supplier', supplierData.id.toString())
+        form.setValue('alamat', supplierData?.alamat || '')
       }
     }
-  }, [selectedPelanggan, allPelanggan])
+  }, [selectedSupplier, allSupplier])
 
   useEffect(() => {
-    if (pelanggan) {
-      const pelangganData = allPelanggan.find((unit) => unit.id.toString() === pelanggan)
-      if (pelangganData && pelangganData.alamat) {
-        form.setValue('alamat', pelangganData.alamat)
+    if (supplier) {
+      const supplierData = allSupplier.find((unit) => unit.id.toString() === supplier)
+      if (supplierData && supplierData.alamat) {
+        form.setValue('alamat', supplierData.alamat)
       }
     }
-  }, [pelanggan])
+  }, [supplier])
 
   useEffect(() => {
     if (isCash) {
@@ -177,12 +176,12 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
 
   useEffect(() => {
     if (mode === 'edit') {
-      getPenjualan(Number(param.id)).then((res) => {
+      getPembelian(Number(param.id)).then((res) => {
         if (res) {
-          const { penjualanBarang } = res
+          const { pembelianBarang } = res
           setData(res)
           setListBarang(
-            penjualanBarang.map((unit) => ({
+            pembelianBarang.map((unit) => ({
               ...unit,
               isUnitSelectOpen: false,
               unitSelected: unit.unitBarang?.id.toString() || '',
@@ -193,7 +192,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
           )
           form.setValue('noInvoice', res?.noInvoice || '')
           form.setValue('deskripsi', res?.deskripsi || '')
-          form.setValue('pelanggan', res?.pelangganId?.toString() || '')
+          form.setValue('supplier', res?.supplierId?.toString() || '')
           form.setValue('tanggal', res?.tanggal || new Date())
           form.setValue('jatuhTempo', res?.tanggalBayar || new Date())
           form.setValue('diskon', res?.diskon || 0)
@@ -204,24 +203,20 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
       setData(undefined)
       setListBarang([])
       form.reset()
-      getTableSequence('penjualan').then((res) => {
-        setKodeSequence(res)
-        if (res) form.setValue('noInvoice', generateInvoceKode(res))
-      })
     }
     if (!initialized) fetchData()
   }, [])
 
-  const onSubmit = async (value: PenjualanFormData) => {
+  const onSubmit = async (value: PembelianFormData) => {
     if (mode === 'baru') {
       if (!listBarang.length) {
         toast({ title: 'Error', description: 'Barang belum dipilih' })
         return
       }
-      savePenjualan(value, listBarang).then((res) => {
+      savePembelian(value, listBarang).then((res) => {
         console.log(res, 'res sub')
         if (res) {
-          toast({ title: 'Success', description: 'Penjualan berhasil disimpan' })
+          toast({ title: 'Success', description: 'Pembelian berhasil disimpan' })
           form.reset()
           setListBarang([])
           setData(undefined)
@@ -235,16 +230,16 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
         }
       })
     } else {
-      updatePenjualan(Number(param.id), value, listBarang).then((res) => {
+      updatePembelian(Number(param.id), value, listBarang).then((res) => {
         if (res) {
-          toast({ title: 'Success', description: 'Perubahan Penjualan berhasil disimpan' })
-          navigate('/histori-penjualan')
+          toast({ title: 'Success', description: 'Perubahan Pembelian berhasil disimpan' })
+          navigate('/histori-pembelian')
         }
       })
     }
   }
 
-  const getDataRow = (data: PenjualanBarang, columnId: ColumnId) => {
+  const getDataRow = (data: PembelianBarang, columnId: ColumnId) => {
     const barang = data
     switch (columnId) {
       case 'kodeBarang':
@@ -274,7 +269,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   }
 
   const getRows = (
-    data: PenjualanBarang[],
+    data: PembelianBarang[],
     columnsOrder: ColumnId[],
     disabled?: boolean
   ): Row[] => [
@@ -300,9 +295,9 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
 
   const applyNewValue = (
     changes: CellChange<DefaultCellTypes | InputChange | EditCell>[],
-    prevData: DataPenjualanBarang,
+    prevData: DataPembelianBarang,
     _usePrevValue: boolean = false
-  ): DataPenjualanBarang => {
+  ): DataPembelianBarang => {
     changes.forEach((change) => {
       const dataIndex = change.rowId
       const columnId = change.columnId
@@ -315,7 +310,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
 
       if (change.type === 'text') {
         dataRow[fieldName] = change.newCell.text as never
-        // updatePenjualan(dataRow.id, { [fieldName]: change.newCell.text }).then((res) => {
+        // updatePembelian(dataRow.id, { [fieldName]: change.newCell.text }).then((res) => {
         //   setData((prev) => prev.map((d) => (d.id === dataIndex ? res : d)))
         // })
       } else if (change.type === 'number') {
@@ -357,8 +352,8 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
 
   const applyChangesToData = (
     changes: CellChange[],
-    prevData: DataPenjualanBarang
-  ): DataPenjualanBarang => {
+    prevData: DataPembelianBarang
+  ): DataPembelianBarang => {
     const updated = applyNewValue(changes, prevData)
     setCellChanges([...cellChanges.slice(0, cellChangesIndex + 1), changes])
     setCellChangesIndex(cellChangesIndex + 1)
@@ -419,8 +414,8 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
 
   const undoChanges = (
     changes: CellChange[],
-    prevData: DataPenjualanBarang
-  ): DataPenjualanBarang => {
+    prevData: DataPembelianBarang
+  ): DataPembelianBarang => {
     const updated = applyNewValue(changes, prevData, true)
     setCellChangesIndex(cellChangesIndex - 1)
     return updated
@@ -428,8 +423,8 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
 
   const redoChanges = (
     changes: CellChange[],
-    prevData: DataPenjualanBarang
-  ): DataPenjualanBarang => {
+    prevData: DataPembelianBarang
+  ): DataPembelianBarang => {
     const updated = applyNewValue(changes, prevData)
     setCellChangesIndex(cellChangesIndex + 1)
     return updated
@@ -465,25 +460,25 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
     >
       <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <HeaderBase>{mode === 'baru' ? 'Buat penjualan Baru' : 'Edit Penjualan'}</HeaderBase>
+          <HeaderBase>{mode === 'baru' ? 'Buat pembelian Baru' : 'Edit Pembelian'}</HeaderBase>
           <div className="space-y-1">
             <div className="flex gap-3 justify-start items-end">
               <FormInput name="noInvoice" label="No Invoice" fieldClassName="max-w-[150px]" />
               <SelectFormInput
-                name="pelanggan"
+                name="supplier"
                 className="w-[200px]"
-                label="Pelanggan"
-                placeholder="Pilih pelanggan"
-                options={allPelanggan.map((p) => ({ value: p.id.toString(), label: p.nama }))}
+                label="Supplier"
+                placeholder="Pilih supplier"
+                options={allSupplier.map((p) => ({ value: p.id.toString(), label: p.nama }))}
                 additionalComponent={
                   <div>
-                    <Button className="text-xs" onClick={() => setSelectedPelanggan(0)}>
-                      <Plus /> Tambah Pelanggan Baru
+                    <Button className="text-xs" onClick={() => setSelectedSupplier(0)}>
+                      <Plus /> Tambah Supplier Baru
                     </Button>
                   </div>
                 }
               />
-              <DateFormInput label="Tanggal Penjualan" name="tanggal" />
+              <DateFormInput label="Tanggal Pembelian" name="tanggal" />
               -
               <DateFormInput label="Tanggal Jatuh Tempo" disabled={isCash} name="jatuhTempo" />-
               <label className="flex items-center gap-2">
@@ -536,12 +531,12 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
                 </div>
               </div>
               <div className="flex justify-between px-4">
-                <LinkButtonIcon className="!mt-3 w-full h-10" to="/histori-penjualan">
+                <LinkButtonIcon to="/histori-pembelian" className="!mt-3 w-full h-10">
                   Batal
                 </LinkButtonIcon>
 
                 <Button type="submit" className="!mt-3 w-full h-10">
-                  {mode === 'baru' ? 'Buat penjualan' : 'Simpan Penjualan'}
+                  {mode === 'baru' ? 'Buat pembelian' : 'Simpan Pembelian'}
                 </Button>
               </div>
             </div>
@@ -591,10 +586,10 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
         setOpenBarang={setOpenBarang}
         selectedIds={selectedIds}
       />
-      {selectedPelanggan === 0 && (
-        <DialogUpdatePelanggan
+      {selectedSupplier === 0 && (
+        <DialogUpdateSupplier
           type="add"
-          selectedPelanggan={{
+          selectedSupplier={{
             id: 0,
             kode: '',
             nama: '',
@@ -602,11 +597,11 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
             deskripsi: '',
             createdAt: new Date()
           }}
-          setSelectedIds={setSelectedPelanggan}
+          setSelectedIds={setSelectedSupplier}
         />
       )}
     </div>
   )
 }
 
-export default PenjualanPage
+export default PembelianPage
