@@ -20,6 +20,7 @@ import {
 import { formatWithThousandSeparator } from '@/lib/utils'
 import { EditCell, EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
 import { DropdownCellTemplateTest } from '@/components/tablelib'
+import { LinkCellTemplate } from '@/components/tablelib/CellTemplates/LinkCellTemplate'
 
 type DataBarangFull = DataBarang[number] & {
   hargaLainId: string | undefined
@@ -33,6 +34,7 @@ type Props = {
   isEditable: boolean
   setSelectedBarangId: React.Dispatch<React.SetStateAction<number | null>>
   setSearchBarangs: React.Dispatch<React.SetStateAction<DataBarang | []>>
+  loading: boolean
 }
 
 const columnMap = {
@@ -46,7 +48,8 @@ const columnMap = {
   masuk: 'Masuk',
   keluar: 'Keluar',
   stockAkhir: 'Stock Akhir',
-  editBarang: ''
+  editBarang: '',
+  historiBarang: ''
 }
 
 type ColumnId = keyof typeof columnMap
@@ -73,7 +76,8 @@ const getColumns = (): Column[] => [
   { columnId: 'masuk', width: 75, resizable: true, reorderable: true },
   { columnId: 'keluar', width: 75, resizable: true, reorderable: true },
   { columnId: 'stockAkhir', width: 100, resizable: true, reorderable: true },
-  { columnId: 'editBarang', width: 40, resizable: true, reorderable: true }
+  { columnId: 'editBarang', width: 40 },
+  { columnId: 'historiBarang', width: 40 }
 ]
 
 const typesRow = {
@@ -87,7 +91,8 @@ const typesRow = {
   masuk: 'number',
   keluar: 'number',
   stockAkhir: 'number',
-  editBarang: 'edit'
+  editBarang: 'edit',
+  historiBarang: 'link'
 }
 
 const getDataRow = (data: DataBarangFull, columnId: ColumnId) => {
@@ -127,13 +132,20 @@ const getDataRow = (data: DataBarangFull, columnId: ColumnId) => {
     case 'stockAwal':
       return { value: data.stockAwal }
     case 'masuk':
-      return { value: 0, nonEditable: true }
+      return { value: data.stokMasuk, nonEditable: true }
     case 'keluar':
-      return { value: 0, nonEditable: true }
+      return { value: data.stokKeluar, nonEditable: true }
     case 'stockAkhir':
-      return { value: data.stockAwal, nonEditable: true }
+      return { value: data.stockAwal + data.stokMasuk - data.stokKeluar, nonEditable: true }
     case 'editBarang':
       return { text: data.id.toString(), openedId: data.id + 1, icon: 'pencil' }
+    case 'historiBarang':
+      return {
+        text: data.id.toString(),
+        openedId: data.id + 1,
+        icon: 'history',
+        url: `/list-barang/histori-barang/${data.id}`
+      }
     default:
       return {}
   }
@@ -164,7 +176,13 @@ const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
   return [...leftSide, ...movedElements, ...rightSide]
 }
 
-const TableBarang = ({ isEditable, barangs, setSelectedBarangId, setSearchBarangs }: Props) => {
+const TableBarang = ({
+  isEditable,
+  barangs,
+  setSelectedBarangId,
+  setSearchBarangs,
+  loading
+}: Props) => {
   const [data, setData] = React.useState<DataBarangFull[]>([])
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
 
@@ -438,9 +456,11 @@ const TableBarang = ({ isEditable, barangs, setSelectedBarangId, setSearchBarang
         stickyTopRows={1}
         customCellTemplates={{
           edit: new EditTemplateCell(),
-          dropdown: new DropdownCellTemplateTest()
+          dropdown: new DropdownCellTemplateTest(),
+          link: new LinkCellTemplate()
         }}
       />
+      {loading && <div className="w-full text-center">Memuat data..</div>}
     </div>
   )
 }

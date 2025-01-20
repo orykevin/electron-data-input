@@ -67,7 +67,9 @@ export const unitBarangRelations = relations(unitBarang, ({ one, many }) => ({
     fields: [unitBarang.id],
     references: [harga.unitBarangId]
   }),
-  hargaLain: many(hargaLain)
+  hargaLain: many(hargaLain),
+  penjualanBarang: many(penjualanBarang),
+  pembelianBarang: many(pembelianBarang)
 }))
 
 export const hargaRelations = relations(harga, ({ one }) => ({

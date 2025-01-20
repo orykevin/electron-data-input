@@ -1,9 +1,12 @@
 import { database } from '@/db'
-import { and, eq, gte, lte } from 'drizzle-orm'
+import { and, eq, gte, InferSelectModel, lte } from 'drizzle-orm'
 import { penjualan, penjualanBarang } from '../../../db/schema'
 import { DataPenjualanBarang, PenjualanFormData } from '@/page/penjualan'
 
 export type Penjualan = Awaited<ReturnType<typeof getPenjualan>>
+
+export type PenjualanData = InferSelectModel<typeof penjualan>
+export type PenjualanBarangData = InferSelectModel<typeof penjualanBarang>
 
 export const getPenjualanId = async (id: number) => {
   return await database.query.penjualan.findFirst({

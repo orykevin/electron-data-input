@@ -12,12 +12,27 @@ const Barang = () => {
   const [searchBarangs, setSearchBarangs] = useState<DataBarang | []>([])
   const { data: unitData, fetchData, initialized } = useAllUnit()
   const [selectedBarangId, setSelectedBarangId] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const selectedBarang = useMemo(() => {
     const barangData = searchBarangs.find((barang) => barang.id === selectedBarangId)
     const barangData2 = barangs.find((barang) => barang.id === selectedBarangId)
     return barangData || barangData2
   }, [searchBarangs, barangs, selectedBarangId])
+
+  const [page, setPage] = useState(0)
+  const [search, setSearch] = useState('')
+  const [searchField, setSearchField] = useState('')
+
+  const reFetching = async () => {
+    if (loading) return
+    getBarang(page + 1, searchField, search).then((result) => {
+      setBarangs((prev) => [...prev, ...result])
+      setSearchBarangs(result)
+      setLoading(false)
+    })
+    setPage((prev) => prev + 1)
+  }
 
   useEffect(() => {
     if (unitData && !initialized) {
@@ -26,11 +41,30 @@ const Barang = () => {
   }, [])
 
   useEffect(() => {
-    getBarang().then((result) => {
+    getBarang(page, searchField, search).then((result) => {
       setBarangs(result)
       setSearchBarangs(result)
+      setLoading(false)
     })
-  }, [])
+  }, [search, searchField])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
+      const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight
+      const clientHeight = document.documentElement.clientHeight || document.body.clientHeight
+      if (scrollTop + clientHeight >= scrollHeight - 100 && !loading) {
+        setLoading(true)
+        reFetching()
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [loading, reFetching])
 
   return (
     <div>
@@ -38,13 +72,15 @@ const Barang = () => {
         setEditable={setIsEditable}
         barangs={barangs}
         setBarangs={setBarangs}
-        setSearchBarangs={setSearchBarangs}
+        setSearch={setSearch}
+        setSearchField={setSearchField}
       />
       <TableBarang
         isEditable={isEditable}
-        barangs={searchBarangs}
+        barangs={barangs}
         setSelectedBarangId={setSelectedBarangId}
         setSearchBarangs={setSearchBarangs}
+        loading={loading}
       />
       <Dialog
         open={selectedBarangId && selectedBarang ? true : false}
@@ -58,7 +94,6 @@ const Barang = () => {
           <div>
             {selectedBarang && (
               <FormBarang
-                setSearchBarangs={setSearchBarangs}
                 setBarangs={setSearchBarangs}
                 type="edit"
                 selectedBarang={selectedBarang}

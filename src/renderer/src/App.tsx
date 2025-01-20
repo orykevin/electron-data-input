@@ -15,6 +15,7 @@ import HistoriPenjualan from './page/history-penjualan'
 import PengaturanUnit from './page/pengaturan-unit'
 import PembelianPage from './page/pembelian'
 import HistoriPembelian from './page/history-pembelian'
+import HistoriBarang from './page/histori-barang'
 
 function App(): JSX.Element {
   const { data: userData } = useUser()
@@ -59,6 +60,7 @@ function App(): JSX.Element {
                 path="histori-pembelian/edit-faktur-pembelian/:id"
                 element={<PembelianPage mode="edit" key={'edit-pembelian'} />}
               ></Route>
+              <Route path="list-barang/histori-barang/:id" element={<HistoriBarang />}></Route>
             </Routes>
 
             <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
