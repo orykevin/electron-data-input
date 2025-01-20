@@ -33,10 +33,6 @@ const data = {
         {
           name: 'Pengaturan Unit',
           url: '/pengaturan-unit'
-        },
-        {
-          name: 'Histori Barang',
-          url: '/histori-barang'
         }
       ]
     },

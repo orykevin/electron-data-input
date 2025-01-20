@@ -15,7 +15,6 @@ type Props = {
   type?: 'edit'
   selectedBarang?: DataBarang[number]
   setBarangs: React.Dispatch<SetStateAction<DataBarang | []>>
-  setSearchBarangs: React.Dispatch<SetStateAction<DataBarang | []>>
   setSelectedBarangId?: React.Dispatch<React.SetStateAction<number | null>>
 }
 
@@ -33,20 +32,16 @@ const schema = z.object({
   ),
   // harga: z.number(),
   // hargaLain: z.string(),
-  stockAwal: z.number()
+  stockAwal: z.number(),
+  stockMasuk: z.number(),
+  stockKeluar: z.number()
   // masuk: z.number(),
   // keluar: z.number()
 })
 
 export type FormDataBarang = z.infer<typeof schema>
 
-const FormBarang = ({
-  setBarangs,
-  setSearchBarangs,
-  selectedBarang,
-  type,
-  setSelectedBarangId
-}: Props) => {
+const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: Props) => {
   const { data: unitData } = useAllUnit()
 
   const defaultValues = selectedBarang
@@ -55,6 +50,8 @@ const FormBarang = ({
         nama: selectedBarang.nama,
         modal: selectedBarang.modal,
         stockAwal: selectedBarang.stockAwal,
+        stockMasuk: selectedBarang?.stokMasuk || 0,
+        stockKeluar: selectedBarang?.stokKeluar || 0,
         listHarga: selectedBarang.unitBarang.map((u) => ({
           unit: u.unit?.id.toString() || '1',
           harga: u.harga?.harga | 0,
@@ -62,7 +59,9 @@ const FormBarang = ({
         }))
       }
     : {
-        listHarga: [{ unit: unitData[0]?.id.toString() || '1', harga: 0, hargaLain: [0] }]
+        listHarga: [{ unit: unitData[0]?.id.toString() || '1', harga: 0, hargaLain: [0] }],
+        stockKeluar: 0,
+        stockMasuk: 0
       }
 
   const form = useForm<FormDataBarang>({
@@ -82,12 +81,11 @@ const FormBarang = ({
           if (result) {
             setBarangs((prev) => {
               let newArray = [...prev]
-              newArray[newArray.findIndex((b) => b.id === result.id)] = result
-              return newArray
-            })
-            setSearchBarangs((prev) => {
-              let newArray = [...prev]
-              newArray[newArray.findIndex((b) => b.id === result.id)] = result
+              newArray[newArray.findIndex((b) => b.id === result.id)] = {
+                ...result,
+                stokKeluar: result.stockKeluar,
+                stokMasuk: result.stockMasuk
+              }
               return newArray
             })
             setSelectedBarangId && setSelectedBarangId(null)
@@ -100,8 +98,7 @@ const FormBarang = ({
       await createBarang(data)
         .then((result) => {
           if (result) {
-            setBarangs((prev) => [result, ...prev])
-            setSearchBarangs((prev) => [result, ...prev])
+            setBarangs((prev) => [{ ...result, stokKeluar: 0, stokMasuk: 0 }, ...prev])
           }
         })
         .catch((err) => {
