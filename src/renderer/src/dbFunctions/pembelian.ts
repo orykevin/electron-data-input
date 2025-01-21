@@ -7,6 +7,7 @@ export type Pembelian = Awaited<ReturnType<typeof getPembelian>>
 
 export type PembelianData = InferSelectModel<typeof pembelian>
 export type PembelianBarangData = InferSelectModel<typeof pembelianBarang>
+export type LastPembelian = Awaited<ReturnType<typeof getLastPembelian>>
 
 export const getPembelianId = async (id: number) => {
   return await database.query.pembelian.findFirst({
@@ -15,6 +16,13 @@ export const getPembelianId = async (id: number) => {
       id: true
     },
     with: { pembelianBarang: true }
+  })
+}
+
+export const getLastPembelian = async () => {
+  return await database.query.pembelian.findMany({
+    with: { pembelianBarang: true },
+    limit: 10
   })
 }
 
@@ -109,8 +117,6 @@ export const savePembelian = async (
         diskon: formData.diskon
       })
       .returning()
-
-    console.log('created', createdPembelian)
 
     await Promise.all(
       listPembelian.map(async (h) => {

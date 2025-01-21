@@ -34,7 +34,7 @@ function App(): JSX.Element {
               <NavBreadcrumbs />
             </div>
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <div className="flex flex-1 flex-col gap-4 p-4 py-0">
             <Routes>
               <Route index element={<Main />}></Route>
               <Route path="/list-barang" element={<Barang />}></Route>
