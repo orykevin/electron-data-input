@@ -7,6 +7,7 @@ export type Penjualan = Awaited<ReturnType<typeof getPenjualan>>
 
 export type PenjualanData = InferSelectModel<typeof penjualan>
 export type PenjualanBarangData = InferSelectModel<typeof penjualanBarang>
+export type LastPenjualan = Awaited<ReturnType<typeof getLastPenjualan>>
 
 export const getPenjualanId = async (id: number) => {
   return await database.query.penjualan.findFirst({
@@ -15,6 +16,13 @@ export const getPenjualanId = async (id: number) => {
       id: true
     },
     with: { penjualanBarang: true }
+  })
+}
+
+export const getLastPenjualan = async () => {
+  return await database.query.penjualan.findMany({
+    with: { penjualanBarang: true },
+    limit: 10
   })
 }
 

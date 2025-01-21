@@ -15,12 +15,11 @@ import { PembelianData, PembelianBarangData } from './pembelian'
 
 export type DataBarang = Awaited<ReturnType<typeof getBarang>>
 
-export type DataBarangMasukKeluar =
-  | PenjualanBarangData
-  | (PembelianBarangData & {
-      penjualan?: PenjualanData
-      pembelian?: PembelianData
-    })
+type MasukKeluar = PenjualanBarangData | PembelianBarangData
+export type DataBarangMasukKeluar = MasukKeluar & {
+  penjualan?: PenjualanData
+  pembelian?: PembelianData
+}
 
 export const getBarang = async (page = 0, field = '', search = '') => {
   const limit = 75
@@ -39,7 +38,7 @@ export const getBarang = async (page = 0, field = '', search = '') => {
     offset: offsetVal,
     limit: limit
   })
-  const total = await getBarangInventory(offsetVal, limit)
+  const total = await getBarangInventory(offsetVal, limit, search, field)
   return result.map((barang) => {
     const totalBarang = total.find((tb) => tb.id === barang.id)
     return {
@@ -339,7 +338,12 @@ export const getQueryBarang = async (text: string, field: string) => {
   return result
 }
 
-export async function getBarangInventory(limit: number, offset: number) {
+export async function getBarangInventory(
+  offset: number,
+  limit: number,
+  search: string,
+  field: string
+) {
   return await database
     .select({
       id: barang.id,
@@ -365,6 +369,7 @@ export async function getBarangInventory(limit: number, offset: number) {
     )`
     })
     .from(barang as any)
+    .where(like(field === 'kode' ? barang.kode : barang.nama, `%${search.toUpperCase()}%`))
     .offset(offset)
     .limit(limit)
   // .as('b')
