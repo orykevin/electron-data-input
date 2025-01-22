@@ -145,13 +145,13 @@ const SearchComponent = ({
       getQueryBarang(searchKode, 'kode').then((res) => {
         console.log(res, 'kode')
         setMode('kode')
-        handleChangeData(res)
+        handleChangeData(res as DataBarang)
       })
     }
     if (searchNama !== '') {
       getQueryBarang(searchNama, 'nama').then((res) => {
         setMode('nama')
-        handleChangeData(res)
+        handleChangeData(res as DataBarang)
       })
     }
   }, [debounceSearchKode, debounceSearchNama])
@@ -211,7 +211,7 @@ const DialogBarangTabel = ({
       setMode(openBarang.mode)
     }
     if (!openBarang && !mode) {
-      getQueryBarang('', 'nama').then((res) => handleChangeData(res))
+      getQueryBarang('', 'nama').then((res) => handleChangeData(res as DataBarang))
     }
   }, [openBarang, mode])
 

@@ -321,6 +321,8 @@ export const updateHargaBarang = async (id: number, value: number) => {
   }
 }
 
+export type QueryBarangTable = Awaited<ReturnType<typeof getQueryBarang>>
+
 export const getQueryBarang = async (text: string, field: string) => {
   const result = await database.query.barang.findMany({
     where: like(field === 'kode' ? barang.kode : barang.nama, `%${text.toUpperCase()}%`),

@@ -8,3 +8,4 @@ drizzle
 *db.backup*
 electron.vite.config.mjs
 pnpm-lock.yaml
+*.env
