@@ -79,11 +79,21 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: userData } = useUser()
+  const [versionApp, setVersionApp] = React.useState('')
 
   const navList = [
     ...data.projects,
     userData && { name: 'Pengaturan Akun', url: '/pengaturan-akun', icon: UserCog }
   ].filter((list) => list !== null)
+
+  React.useEffect(() => {
+    const getVer = async () => {
+      const verRes = await window.electron.getAppVersion()
+      setVersionApp(verRes)
+    }
+
+    getVer()
+  }, [])
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -109,6 +119,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData!} />
+        <p className="text-[12px] m-0 text-right absolute bottom-1 right-4">Version {versionApp}</p>
       </SidebarFooter>
     </Sidebar>
   )

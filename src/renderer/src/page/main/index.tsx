@@ -1,17 +1,6 @@
 import { LinkButtonIcon } from '@/components/ui/link-button'
-import { getBarang, getBarangInventory } from '@/dbFunctions/barang'
-import {
-  getLastPembelian,
-  LastPembelian,
-  Pembelian,
-  PembelianBarangData
-} from '@/dbFunctions/pembelian'
-import {
-  getLastPenjualan,
-  LastPenjualan,
-  Penjualan,
-  PenjualanBarangData
-} from '@/dbFunctions/penjualan'
+import { getLastPembelian, LastPembelian } from '@/dbFunctions/pembelian'
+import { getLastPenjualan, LastPenjualan } from '@/dbFunctions/penjualan'
 import { getMonthShortName, getTotalAfterTax } from '@/misc/utils'
 import useAllPelanggan from '@/store/usePelangganStore'
 import useAllSupplier from '@/store/useSupplierStore'

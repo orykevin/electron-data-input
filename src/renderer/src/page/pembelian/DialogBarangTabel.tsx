@@ -5,7 +5,7 @@ import { DataBarang, getQueryBarang } from '@/dbFunctions/barang'
 import useDebounce from '@/lib/hooks/use-debounce'
 import { CellChange, Column, DefaultCellTypes, Id, ReactGrid, Row } from '@silevis/reactgrid'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { DataPenjualanBarang, PenjualanBarang } from '.'
+import { DataPenjualanBarang, PenjualanBarang } from '../penjualan'
 
 type Props = {
   isOpen: boolean
@@ -145,13 +145,13 @@ const SearchComponent = ({
       getQueryBarang(searchKode, 'kode').then((res) => {
         console.log(res, 'kode')
         setMode('kode')
-        handleChangeData(res)
+        handleChangeData(res as DataBarang)
       })
     }
     if (searchNama !== '') {
       getQueryBarang(searchNama, 'nama').then((res) => {
         setMode('nama')
-        handleChangeData(res)
+        handleChangeData(res as DataBarang)
       })
     }
   }, [debounceSearchKode, debounceSearchNama])
@@ -211,7 +211,7 @@ const DialogBarangTabel = ({
       setMode(openBarang.mode)
     }
     if (!openBarang && !mode) {
-      getQueryBarang('', 'nama').then((res) => handleChangeData(res))
+      getQueryBarang('', 'nama').then((res) => handleChangeData(res as DataBarang))
     }
   }, [openBarang, mode])
 

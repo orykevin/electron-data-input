@@ -53,6 +53,9 @@ app.whenReady().then(async () => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
   ipcMain.handle('db:execute', execute)
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion()
+  })
 
   const dbInitialized = await initializeApp()
   if (dbInitialized) {

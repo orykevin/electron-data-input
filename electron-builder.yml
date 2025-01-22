@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: sqlite-demo
+productName: Rio Jaya Motor
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: sqlite-demo
+  executableName: Rio Jaya Motor
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
