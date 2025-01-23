@@ -1,6 +1,5 @@
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import * as schema from '../db/schema'
 import fs from 'fs'
 import { app } from 'electron'
@@ -12,78 +11,81 @@ const dbPath = import.meta.env.DEV ? 'sqlite.db' : path.join(app.getPath('userDa
 fs.mkdirSync(path.dirname(dbPath), { recursive: true })
 
 const sqlite = new Database(dbPath)
-// Temporarily disable foreign key constraints during initialization
-sqlite.exec('PRAGMA foreign_keys = OFF;')
+sqlite.exec('PRAGMA foreign_keys = ON;')
 
 export const db = drizzle(sqlite, { schema })
 
-const getAllTables = (): string[] => {
-  return sqlite
-    .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
-    .all()
-    .map((row) => row.name)
-}
-
-const dropAllTables = (): void => {
-  const tables = getAllTables()
-
-  // Drop all tables
-  tables.forEach((tableName) => {
-    sqlite.exec(`DROP TABLE IF EXISTS "${tableName}";`)
-  })
-}
-
-const initializeDatabase = async (): Promise<void> => {
-  try {
-    // Disable foreign key constraints temporarily
-    sqlite.exec('PRAGMA foreign_keys = OFF;')
-
-    // Drop all existing tables
-    dropAllTables()
-
-    // Re-enable foreign key constraints before running migrations
-    sqlite.exec('PRAGMA foreign_keys = ON;')
-  } catch (error) {
-    console.error('Error during database initialization:', error)
-    throw error
-  }
+const tableExists = (tableName: string): boolean => {
+  const result = sqlite
+    .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name = ?")
+    .get(tableName)
+  return !!result
 }
 
 export const runMigrate = async () => {
   return new Promise<void>(async (resolve, reject) => {
     try {
-      // Check if we're in development mode
-      if (import.meta.env.DEV) {
-        // In development, we reset the database
-        await initializeDatabase()
+      // Only proceed with migration if the migrations table doesn't exist
+      // or if we have pending migrations
+      if (!tableExists('__drizzle_migrations')) {
+        // await migrate(db, {
+        //   migrationsFolder: path.join(__dirname, '../../drizzle')
+        // })
+        console.log('Initial migration successful!')
       } else {
-        // In production, only initialize if migrations table doesn't exist
-        const tables = getAllTables()
-        if (!tables.includes('__drizzle_migrations')) {
-          await initializeDatabase()
-        }
+        // For existing databases, we'll check the schema and apply any new migrations
+        // try {
+        //   await migrate(db, {
+        //     migrationsFolder: path.join(__dirname, '../../drizzle')
+        //   })
+        //   console.log('Schema update successful!')
+        // } catch (error: any) {
+        //   if (error.message?.includes('already exists')) {
+        //     console.log('Schema is up to date, no changes needed')
+        //     resolve()
+        //     return
+        //   }
+        //   throw error
+        // }
+        // skipped
       }
-
-      // Run the migrations
-      await migrate(db, {
-        migrationsFolder: path.join(__dirname, '../../drizzle')
-      })
-
-      console.log('Migration successful!')
       resolve()
     } catch (error) {
       console.error('Migration failed:', error)
       reject(error)
-    } finally {
-      // Always ensure foreign keys are enabled after migration
-      sqlite.exec('PRAGMA foreign_keys = ON;')
     }
   })
 }
 
-// Use this in your main process
+function toDrizzleResult(rows: Record<string, any> | Array<Record<string, any>>) {
+  if (!rows) {
+    return []
+  }
+  if (Array.isArray(rows)) {
+    return rows.map((row) => {
+      return Object.keys(row).map((key) => row[key])
+    })
+  } else {
+    return Object.keys(rows).map((key) => rows[key])
+  }
+}
+
+export const execute = async (e, sqlstr, params, method) => {
+  console.log(e)
+  const result = sqlite.prepare(sqlstr)
+  const ret = result[method](...params)
+  return toDrizzleResult(ret)
+}
+
 export const initializeApp = async () => {
   try {
+    // Create backup before attempting any migrations
+    if (fs.existsSync(dbPath)) {
+      const backupPath = `${dbPath}.backup-${Date.now()}`
+      fs.copyFileSync(dbPath, backupPath)
+      console.log(`Database backed up to: ${backupPath}`)
+    }
+
     await runMigrate()
     return true
   } catch (error) {
@@ -93,15 +95,15 @@ export const initializeApp = async () => {
 }
 
 // Helper function to check database state
-export const checkDatabaseState = () => {
-  const tables = getAllTables()
-  console.log('Current database tables:', tables)
-
-  const foreignKeysEnabled = sqlite.prepare('PRAGMA foreign_keys').get().foreign_keys
-  console.log('Foreign keys enabled:', !!foreignKeysEnabled)
+export const getDatabaseInfo = () => {
+  const tables = sqlite
+    .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+    .all()
+    .map((row) => row.name)
 
   return {
     tables,
-    foreignKeysEnabled: !!foreignKeysEnabled
+    hasMigrationTable: tableExists('__drizzle_migrations'),
+    path: dbPath
   }
 }

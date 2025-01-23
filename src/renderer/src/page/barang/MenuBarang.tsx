@@ -9,11 +9,12 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 type Props = {
   setEditable?: React.Dispatch<SetStateAction<boolean>>
   setBarangs: React.Dispatch<SetStateAction<DataBarang | []>>
-  setSearchBarangs: React.Dispatch<SetStateAction<DataBarang | []>>
   barangs: DataBarang
+  setSearch: React.Dispatch<SetStateAction<string>>
+  setSearchField: React.Dispatch<SetStateAction<string>>
 }
 
-const MenuBarang = ({ setEditable, barangs, setBarangs, setSearchBarangs }: Props) => {
+const MenuBarang = ({ setEditable, setBarangs, setSearch, setSearchField }: Props) => {
   const [searchKode, setSearchKode] = useState('')
   const [searchNama, setSearchNama] = useState('')
   const debounceSearchKode = useDebounce(searchKode, 250)
@@ -21,26 +22,19 @@ const MenuBarang = ({ setEditable, barangs, setBarangs, setSearchBarangs }: Prop
   const [showForm, setShowForm] = useState(true)
 
   useEffect(() => {
-    if (searchKode !== '') {
-      const filtered = barangs.filter((barang) => {
-        return barang.kode.toLowerCase().includes(debounceSearchKode.toLowerCase())
-      })
-      setSearchBarangs(filtered)
-    } else {
-      setSearchBarangs(barangs)
+    if (searchKode !== '' && searchNama === '') {
+      setSearch(searchKode)
+      setSearchField('kode')
     }
-  }, [debounceSearchKode])
-
-  useEffect(() => {
-    if (searchNama !== '') {
-      const filtered = barangs.filter((barang) => {
-        return barang.nama.toLowerCase().includes(debounceSearchNama.toLowerCase())
-      })
-      setSearchBarangs(filtered)
-    } else {
-      setSearchBarangs(barangs)
+    if (searchNama !== '' && searchKode === '') {
+      setSearch(searchNama)
+      setSearchField('nama')
     }
-  }, [debounceSearchNama])
+    if (searchKode === '' && searchNama === '') {
+      setSearch('')
+      setSearchField('')
+    }
+  }, [debounceSearchKode, debounceSearchNama])
 
   const handleSearchKode = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (searchNama !== '') {
@@ -68,7 +62,7 @@ const MenuBarang = ({ setEditable, barangs, setBarangs, setSearchBarangs }: Prop
             {showForm ? <ChevronUp size="24" /> : <ChevronDown size="24" />}
           </div>
         </h1>
-        {showForm && <FormBarang setBarangs={setBarangs} setSearchBarangs={setSearchBarangs} />}
+        {showForm && <FormBarang setBarangs={setBarangs} />}
       </div>
       <h1 className="text-2xl font-semibold pb-2 mb-2 border-b border-gray-200">Tabel list</h1>
       <div className="flex justify-between items-center">

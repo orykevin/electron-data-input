@@ -1,12 +1,31 @@
 import { database } from '@/db'
 import { FormDataBarang } from '@/page/barang/FormBarang'
-import { barang, harga, hargaLain, unitBarang } from '../../../db/schema'
-import { eq } from 'drizzle-orm'
+import {
+  barang,
+  harga,
+  hargaLain,
+  pembelianBarang,
+  penjualanBarang,
+  unit,
+  unitBarang
+} from '../../../db/schema'
+import { eq, like, sql } from 'drizzle-orm'
+import { PenjualanData, PenjualanBarangData } from './penjualan'
+import { PembelianData, PembelianBarangData } from './pembelian'
 
 export type DataBarang = Awaited<ReturnType<typeof getBarang>>
 
-export const getBarang = async () => {
+type MasukKeluar = PenjualanBarangData | PembelianBarangData
+export type DataBarangMasukKeluar = MasukKeluar & {
+  penjualan?: PenjualanData
+  pembelian?: PembelianData
+}
+
+export const getBarang = async (page = 0, field = '', search = '') => {
+  const limit = 75
+  const offsetVal = page * limit
   const result = await database.query.barang.findMany({
+    where: like(field === 'kode' ? barang.kode : barang.nama, `%${search.toUpperCase()}%`),
     with: {
       unitBarang: {
         with: {
@@ -15,9 +34,19 @@ export const getBarang = async () => {
           hargaLain: true
         }
       }
+    },
+    offset: offsetVal,
+    limit: limit
+  })
+  const total = await getBarangInventory(offsetVal, limit, search, field)
+  return result.map((barang) => {
+    const totalBarang = total.find((tb) => tb.id === barang.id)
+    return {
+      ...barang,
+      stokMasuk: totalBarang?.totalPembelian || 0,
+      stokKeluar: totalBarang?.totalPenjualan || 0
     }
   })
-  return result
 }
 
 export const createBarang = async (data: FormDataBarang) => {
@@ -74,8 +103,8 @@ export const createBarang = async (data: FormDataBarang) => {
         }
       }
     })
-
-    return createdData
+    if (createdData) return { ...createdData, stockMasuk: 0, stockAwal: 0 }
+    return null
   } catch (err) {
     console.log(err)
     throw new Error(`Error has found`)
@@ -207,10 +236,18 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
     })
   )
 
-  return await database.query.barang.findFirst({
+  const returnedValue = await database.query.barang.findFirst({
     where: (barang, { eq }) => eq(barang.id, selectedBarang.id),
     with: { unitBarang: { with: { unit: true, harga: true, hargaLain: true } } }
   })
+
+  if (returnedValue)
+    return {
+      ...returnedValue,
+      stockMasuk: data.stockMasuk || 0,
+      stockKeluar: data.stockKeluar || 0
+    }
+  return null
 }
 
 export const editBarangData = async (field: string, id: number, value: any) => {
@@ -258,7 +295,6 @@ export const deleteBarang = async (dataBarang: DataBarang) => {
 }
 
 export const createHarga = async (unitBarangId: number, value: number) => {
-  console.log(unitBarangId, value, 'creating harga')
   try {
     const createdHarga = await database
       .insert(harga)
@@ -283,4 +319,112 @@ export const updateHargaBarang = async (id: number, value: number) => {
     console.log(e)
     throw new Error(`${(e as Error).message}`)
   }
+}
+
+export type QueryBarangTable = Awaited<ReturnType<typeof getQueryBarang>>
+
+export const getQueryBarang = async (text: string, field: string) => {
+  const result = await database.query.barang.findMany({
+    where: like(field === 'kode' ? barang.kode : barang.nama, `%${text.toUpperCase()}%`),
+    limit: 100,
+    with: {
+      unitBarang: {
+        with: {
+          unit: true,
+          harga: true,
+          hargaLain: true
+        }
+      }
+    }
+  })
+  return result
+}
+
+export async function getBarangInventory(
+  offset: number,
+  limit: number,
+  search: string,
+  field: string
+) {
+  return await database
+    .select({
+      id: barang.id,
+      totalPembelian: sql<number>`COALESCE(
+      (
+        SELECT SUM(pemb.jumlah * un.jumlah)
+        FROM ${pembelianBarang} as pemb
+        JOIN ${unitBarang} as ub1 ON ub1.id = pemb.unitBarangId
+        JOIN ${unit} as un ON un.id = ub1.unitId
+        WHERE ub1.barangId = barang.id
+      ),
+      0
+    )`,
+      totalPenjualan: sql<number>`COALESCE(
+      (
+        SELECT SUM(penj.jumlah * un.jumlah)
+        FROM ${penjualanBarang} as penj
+        JOIN ${unitBarang} as ub2 ON ub2.id = penj.unitBarangId
+        JOIN ${unit} as un ON un.id = ub2.unitId
+        WHERE ub2.barangId = barang.id
+      ),
+      0
+    )`
+    })
+    .from(barang as any)
+    .where(like(field === 'kode' ? barang.kode : barang.nama, `%${search.toUpperCase()}%`))
+    .offset(offset)
+    .limit(limit)
+  // .as('b')
+  // .then((rows) => {
+  //   return rows.map(row => ({
+  //     ...row,
+  //     stockSekarang: row.stockAwal + row.totalPembelian - row.totalPenjualan
+  //   }));
+  // });
+}
+
+export type HistoryProps = Awaited<ReturnType<typeof getHistoryBarang>>
+export type DataKeluarMasuk = {
+  id: number
+  updateAt: Date | null
+  createdAt: Date | null
+  deletedAt: Date | null
+  jumlah: number
+  harga: number
+  unitBarangId: number | null
+  pembelianId?: number | null
+  penjualanId?: number | null
+}
+
+export const getHistoryBarang = async (id: number) => {
+  const data = await database.query.barang.findFirst({
+    where: eq(barang.id, id),
+    columns: {
+      updateAt: false,
+      deletedAt: false
+    },
+    with: {
+      unitBarang: {
+        with: {
+          unit: true,
+          pembelianBarang: { with: { pembelian: true } },
+          penjualanBarang: { with: { penjualan: true } }
+        }
+      }
+    }
+  })
+
+  let dataKeluarMasuk: any[] = []
+
+  data?.unitBarang.forEach((ub) => {
+    dataKeluarMasuk = [...dataKeluarMasuk, ...ub.pembelianBarang, ...ub.penjualanBarang]
+  })
+
+  dataKeluarMasuk.sort(
+    (a, b) =>
+      (a?.pembelian?.tanggal || a?.penjualan?.tanggal) -
+      (b?.pembelian?.tanggal || b?.penjualan?.tanggal)
+  )
+
+  return { barangData: data, listHistori: dataKeluarMasuk }
 }

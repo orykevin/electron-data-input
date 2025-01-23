@@ -8,14 +8,16 @@ import Barang from './page/barang'
 import useUser from './store/useUserStore'
 import LoginForm from './components/login-form'
 import PengaturanAkun from './page/pengaturan-akun'
+import PelangganPage from './page/pelanggan'
+import SupplierPage from './page/supplier'
+import PenjualanPage from './page/penjualan'
+import HistoriPenjualan from './page/history-penjualan'
+import PengaturanUnit from './page/pengaturan-unit'
+import PembelianPage from './page/pembelian'
+import HistoriPembelian from './page/history-pembelian'
+import HistoriBarang from './page/histori-barang'
 
 function App(): JSX.Element {
-  // const handleCrateUser = () => {
-  //   createUser('admin', 'admin', true, true).then(() => {
-  //     console.log('success')
-  //   })
-  // }
-
   const { data: userData } = useUser()
 
   if (!userData) return <LoginForm />
@@ -30,14 +32,35 @@ function App(): JSX.Element {
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 h-4" />
               <NavBreadcrumbs />
-              {/* <Button onClick={handleCrateUser}>Create User</Button> */}
             </div>
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <div className="flex flex-1 flex-col gap-4 p-4 py-0">
             <Routes>
               <Route index element={<Main />}></Route>
-              <Route path="/barang" element={<Barang />}></Route>
+              <Route path="/list-barang" element={<Barang />}></Route>
+              <Route path="/pengaturan-unit" element={<PengaturanUnit />} />
               {userData && <Route path="/pengaturan-akun" element={<PengaturanAkun />}></Route>}
+              <Route path="/daftar-pelanggan" element={<PelangganPage />}></Route>
+              <Route path="/daftar-supplier" element={<SupplierPage />}></Route>
+              <Route
+                path="/buat-faktur-penjualan"
+                element={<PenjualanPage mode="baru" key={'buat-penjualan'} />}
+              ></Route>
+              <Route path="/histori-penjualan" element={<HistoriPenjualan />}></Route>
+              <Route path="/histori-pembelian" element={<HistoriPembelian />}></Route>
+              <Route
+                path="histori-penjualan/edit-faktur-penjualan/:id"
+                element={<PenjualanPage mode="edit" key={'edit-penjualan'} />}
+              ></Route>
+              <Route
+                path="/buat-faktur-pembelian"
+                element={<PembelianPage mode="baru" key={'buat-pembelian'} />}
+              ></Route>
+              <Route
+                path="histori-pembelian/edit-faktur-pembelian/:id"
+                element={<PembelianPage mode="edit" key={'edit-pembelian'} />}
+              ></Route>
+              <Route path="list-barang/histori-barang/:id" element={<HistoriBarang />}></Route>
             </Routes>
 
             <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />

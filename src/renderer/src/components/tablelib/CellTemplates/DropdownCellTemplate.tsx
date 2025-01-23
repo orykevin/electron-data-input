@@ -140,10 +140,9 @@ export class DropdownCellTemplateTest implements CellTemplate<DropdownCell> {
 
   render(
     cell: Compatible<DropdownCell>,
-    isInEditMode: boolean,
+    _isInEditMode: boolean,
     onCellChanged: (cell: Compatible<DropdownCell>, commit: boolean) => void
   ): React.ReactNode {
-    console.log(isInEditMode)
     return (
       <DropdownInput
         onCellChanged={(cell) => onCellChanged(this.getCompatibleCell(cell), true)}

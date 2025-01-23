@@ -23,29 +23,77 @@ const data = {
     },
     {
       name: 'Barang',
-      url: '/barang',
-      icon: Package
+      url: '#',
+      icon: Package,
+      subMenu: [
+        {
+          name: 'List Barang',
+          url: '/list-barang'
+        },
+        {
+          name: 'Pengaturan Unit',
+          url: '/pengaturan-unit'
+        }
+      ]
     },
     {
       name: 'Penjualan',
       url: '#',
-      icon: ReceiptText
+      icon: ReceiptText,
+      subMenu: [
+        {
+          name: 'Histori Penjualan',
+          url: '/histori-penjualan'
+        },
+        {
+          name: 'Buat Faktur Penjualan',
+          url: '/buat-faktur-penjualan'
+        },
+        {
+          name: 'Daftar Pelanggan',
+          url: '/daftar-pelanggan'
+        }
+      ]
     },
     {
       name: 'Pembelian',
       url: '#',
-      icon: ShoppingBag
+      icon: ShoppingBag,
+      subMenu: [
+        {
+          name: 'Histori Pembelian',
+          url: '/histori-pembelian'
+        },
+        {
+          name: 'Buat Faktur Pembelian',
+          url: '/buat-faktur-pembelian'
+        },
+        {
+          name: 'Daftar Supplier',
+          url: '/daftar-supplier'
+        }
+      ]
     }
   ]
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: userData } = useUser()
+  const [versionApp, setVersionApp] = React.useState('')
 
   const navList = [
     ...data.projects,
     userData && { name: 'Pengaturan Akun', url: '/pengaturan-akun', icon: UserCog }
   ].filter((list) => list !== null)
+
+  React.useEffect(() => {
+    const getVer = async () => {
+      const verRes = await window.electron.getAppVersion()
+      setVersionApp(verRes)
+    }
+
+    getVer()
+  }, [])
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -71,6 +119,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData!} />
+        <p className="text-[12px] m-0 text-right absolute bottom-1 right-4">Version {versionApp}</p>
       </SidebarFooter>
     </Sidebar>
   )

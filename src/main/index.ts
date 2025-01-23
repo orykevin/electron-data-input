@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { initializeApp } from './db'
+import { initializeApp, execute } from './db'
 
 function createWindow(): void {
   // Create the browser window.
@@ -19,7 +19,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow.maximize()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -52,7 +52,10 @@ app.whenReady().then(async () => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
-  // ipcMain.handle('db:execute', execute)
+  ipcMain.handle('db:execute', execute)
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion()
+  })
 
   const dbInitialized = await initializeApp()
   if (dbInitialized) {
