@@ -1,7 +1,7 @@
 import { database } from '@/db'
 import { PelanganFormData } from '@/page/pelanggan'
 import { pelanggan } from '../../../db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 
 export type PelangganData = Awaited<ReturnType<typeof getPelanggan>>
 
@@ -23,12 +23,8 @@ export const createPelanggan = async (data: PelanganFormData) => {
 
 export const deletePelanggan = async (ids: number[]) => {
   try {
-    await Promise.all(
-      ids.map(async (id) => {
-        await database.delete(pelanggan).where(eq(pelanggan.id, id))
-      })
-    )
-    return 'Succsess'
+    const deleteRes = database.delete(pelanggan).where(inArray(pelanggan.id, ids)).returning()
+    return deleteRes
   } catch (e) {
     console.log(e)
     throw new Error(`${(e as Error).message}`)
