@@ -24,7 +24,7 @@ import React, { useEffect } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import z from 'zod'
 import DialogUpdatePelanggan from './DialogUpdatePelanggan'
-import useAllPelanggan from '@/store/usePelangganStore'
+import { toast } from '@/lib/hooks/use-toast'
 
 export const formSchema = z.object({
   kode: z.string(),
@@ -123,15 +123,11 @@ const PelangganPage = () => {
     resolver: zodResolver(formSchema)
   })
 
-  console.log(data, 'data')
-
   useEffect(() => {
     getPelanggan().then((res) => {
       setData(res)
     })
   }, [])
-
-  const { fetchData } = useAllPelanggan()
 
   const onSubmit = async (value: PelanganFormData) => {
     console.log(value)
@@ -141,7 +137,6 @@ const PelangganPage = () => {
     createPelanggan(value).then(({ updateAt, deletedAt, ...res }) => {
       setData((prev) => [...prev, res])
     })
-    fetchData()
     form.reset()
   }
 
@@ -233,9 +228,23 @@ const PelangganPage = () => {
           id: 'removeData',
           label: 'Remove data',
           handler: () => {
-            deletePelanggan(selectedRowIds as number[])
-            setData((prevData) => {
-              return [...prevData.filter((data) => !selectedRowIds.includes(data.id))]
+            deletePelanggan(selectedRowIds as number[]).then((res) => {
+              let toastOptions = {}
+
+              if (res.length < selectedRowIds.length) {
+                toastOptions = {
+                  title: 'Error',
+                  description: `${res.length !== 0 ? 'Beberapa' : ''} Pelanggan gagal dihapus, ada transaksi dari pelanggan yang masih ada di data, pastikan hapus transaksi terlebih dahulu`,
+                  variant: 'destructive'
+                }
+              } else if (res.length === selectedRowIds.length) {
+                setData((prevData) => {
+                  return [...prevData.filter((data) => !selectedRowIds.includes(data.id))]
+                })
+                toastOptions = { title: 'Success', description: 'Pelanggan berhasil dihapus' }
+              }
+
+              toast({ ...toastOptions })
             })
           }
         }

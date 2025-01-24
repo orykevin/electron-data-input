@@ -104,7 +104,7 @@ const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
 
 const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   const [isOpen, setIsOpen] = React.useState(false)
-  const { data: allPelanggan, fetchData, initialized } = useAllPelanggan()
+  const { data: allPelanggan, fetchData } = useAllPelanggan()
   const [data, setData] = React.useState<DataPenjualanFull | undefined>(undefined)
   const [listBarang, setListBarang] = React.useState<DataPenjualanBarang>([])
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
@@ -209,7 +209,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
         if (res) form.setValue('noInvoice', generateInvoceKode(res))
       })
     }
-    if (!initialized) fetchData()
+    fetchData()
   }, [])
 
   const onSubmit = async (value: PenjualanFormData) => {
