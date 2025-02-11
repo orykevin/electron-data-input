@@ -25,6 +25,8 @@ import {
   SupplierData,
   updateSupplier
 } from '@/dbFunctions/supplier'
+import { useToast } from '@/lib/hooks/use-toast'
+import useAllSupplier from '@/store/useSupplierStore'
 
 export const formSchema = z.object({
   kode: z.string(),
@@ -119,12 +121,14 @@ const SupplierPage = () => {
     resolver: zodResolver(formSchema)
   })
 
-  console.log(data, 'data')
+  const { toast } = useToast()
+  const { fetchData } = useAllSupplier()
 
   useEffect(() => {
     getSupplier().then((res) => {
       setData(res)
     })
+    fetchData()
   }, [])
 
   const onSubmit = async (value: PelanganFormData) => {
@@ -226,9 +230,23 @@ const SupplierPage = () => {
           id: 'removeData',
           label: 'Remove data',
           handler: () => {
-            deleteSupplier(selectedRowIds as number[])
-            setData((prevData) => {
-              return [...prevData.filter((data) => !selectedRowIds.includes(data.id))]
+            deleteSupplier(selectedRowIds as number[]).then((res) => {
+              let toastOptions = {}
+
+              if (res.length < selectedRowIds.length) {
+                toastOptions = {
+                  title: 'Error',
+                  description: `${res.length !== 0 ? 'Beberapa' : ''} Supplier gagal dihapus, ada transaksi dari supplier yang masih ada di data, pastikan hapus transaksi terlebih dahulu`,
+                  variant: 'destructive'
+                }
+              } else if (res.length === selectedRowIds.length) {
+                setData((prevData) => {
+                  return [...prevData.filter((data) => !selectedRowIds.includes(data.id))]
+                })
+                toastOptions = { title: 'Success', description: 'Supplier berhasil dihapus' }
+              }
+
+              toast({ ...toastOptions })
             })
           }
         }

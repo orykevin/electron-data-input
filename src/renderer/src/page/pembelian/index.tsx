@@ -103,7 +103,7 @@ const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
 
 const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   const [isOpen, setIsOpen] = React.useState(false)
-  const { data: allSupplier, fetchData, initialized } = useAllSupplier()
+  const { data: allSupplier, fetchData } = useAllSupplier()
   const [data, setData] = React.useState<DataPembelianFull | undefined>(undefined)
   const [listBarang, setListBarang] = React.useState<DataPembelianBarang>([])
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
@@ -204,7 +204,7 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
       setListBarang([])
       form.reset()
     }
-    if (!initialized) fetchData()
+    fetchData()
   }, [])
 
   const onSubmit = async (value: PembelianFormData) => {

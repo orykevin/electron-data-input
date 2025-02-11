@@ -39,7 +39,9 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
+  provider: github
+  repo: electron-data-input
+  owner: orykevin
+  token: <GH_TOKEN>
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
