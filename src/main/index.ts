@@ -5,6 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import { initializeApp, execute } from './db'
 import { autoUpdater } from 'electron-updater'
 import log from 'electron-log'
+import { htmlBase } from './printTemplate'
 
 let mainWindow
 autoUpdater.logger = log
@@ -42,6 +43,43 @@ function createWindow(): void {
   autoUpdater.checkForUpdatesAndNotify()
 }
 
+function printInvoice(content: string) {
+  const printWindow = new BrowserWindow({
+    show: true, // Hide the window
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+
+  const htmlContent = htmlBase(content)
+
+  // Load the HTML content
+  printWindow.loadURL(`data:text/html,${encodeURIComponent(htmlContent)}`)
+
+  // Print the document
+  printWindow.webContents.on('did-finish-load', () => {
+    // printWindow.webContents.print(
+    //   {
+    //     silent: true, // Set to false to show the print dialog
+    //     printBackground: true
+    //     // deviceName: 'Your_Dot_Matrix_Printer_Name' // Specify the printer name
+    //   },
+    //   (success, errorType) => {
+    //     printWindow.close()
+    //     if (!success) {
+    //       console.error('Print failed:', errorType)
+    //       return 'Print gagal'
+    //     } else {
+    //       console.log('Print successful')
+    //       return 'Print Sukses'
+    //     }
+    //     // Close the print window after printing
+    //   }
+    // )
+  })
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -58,6 +96,14 @@ app.whenReady().then(async () => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+  // ipcMain.on('print-content', (_data, { content }: { content: string }) => {
+  //   printInvoice(content)
+  // })
+  ipcMain.on('print-invoice', (event, invoiceData) => {
+    console.log('test', +' ' + invoiceData)
+    event.reply('response', { success: true, data: 'Task completed!' })
+    printInvoice(invoiceData)
+  })
   ipcMain.handle('db:execute', execute)
   ipcMain.handle('get-app-version', () => {
     return app.getVersion()

@@ -28,30 +28,30 @@ type DataFullBarang = DataBarang[number] & {
 const columnMap = {
   kode: 'Kode Barang',
   nama: 'Nama Barang',
+  merek: 'Merek',
   unit: 'Unit',
   harga: 'Harga',
-  hargaLain: 'Harga Lain',
-  stokAkhir: 'Stok Akhir'
+  hargaLain: 'Harga Lain'
 }
 
 type ColumnId = keyof typeof columnMap
 
 const getColumns = (): Column[] => [
   { columnId: 'kode', width: 200, resizable: true, reorderable: true },
-  { columnId: 'nama', width: 400, resizable: true, reorderable: true },
+  { columnId: 'nama', width: 350, resizable: true, reorderable: true },
+  { columnId: 'merek', width: 100, resizable: true, reorderable: true },
   { columnId: 'unit', width: 100, resizable: true, reorderable: true },
   { columnId: 'harga', width: 240, resizable: true, reorderable: true },
-  { columnId: 'hargaLain', width: 240, resizable: true, reorderable: true },
-  { columnId: 'stokAkhir', width: 100, resizable: true, reorderable: true }
+  { columnId: 'hargaLain', width: 240, resizable: true, reorderable: true }
 ]
 
 const typesRow = {
   kode: 'textEnter',
   nama: 'textEnter',
+  merek: 'textEnter',
   unit: 'dropdown',
   harga: 'number',
-  hargaLain: 'dropdown',
-  stokAkhir: 'number'
+  hargaLain: 'dropdown'
 }
 
 const getDataRow = (data: DataFullBarang, columnId: ColumnId) => {
@@ -62,6 +62,8 @@ const getDataRow = (data: DataFullBarang, columnId: ColumnId) => {
       return { text: data?.kode || '', isSelected: false }
     case 'nama':
       return { text: data?.nama || '', isSelected: false }
+    case 'merek':
+      return { text: data?.merek || '', isSelected: false }
     case 'unit':
       return {
         selectedValue: data.unitBarang[selectedIndex]?.id?.toString() || '',
@@ -248,7 +250,11 @@ const DialogBarangTabel = ({
   //   getQueryBarang('', 'nama').then((res) => handleChangeData(res))
   // }, [])
 
+  let addedNum = 0
+
   const handleDropdownChanges = (change: CellChange<DefaultCellTypes | TextEnter>) => {
+    addedNum++
+    if (addedNum > 1) return
     const dataSelected = data.find((d) => d.id === change.rowId)
     if (dataSelected) {
       const unitBarangIdx = dataSelected.unitBarang.findIndex(
@@ -287,6 +293,7 @@ const DialogBarangTabel = ({
           const dataBarang: PenjualanBarang = {
             id: 0 - prev.length,
             harga: hargaLain?.harga || unitBarang?.harga?.harga || 0,
+            diskon: 0,
             unitBarang: {
               barang: dataSelected,
               harga: unitBarang?.harga || null,

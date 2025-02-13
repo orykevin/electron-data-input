@@ -40,6 +40,7 @@ type Props = {
 const columnMap = {
   kode: 'Kode',
   nama: 'Nama',
+  merek: 'Merek',
   unit: 'Unit',
   modal: 'Modal',
   harga: 'Harga',
@@ -68,6 +69,7 @@ type ColumnId = keyof typeof columnMap
 const getColumns = (): Column[] => [
   { columnId: 'kode', width: 80, resizable: true, reorderable: true },
   { columnId: 'nama', width: 300, resizable: true, reorderable: true },
+  { columnId: 'merek', width: 100, resizable: true, reorderable: true },
   { columnId: 'unit', width: 80, resizable: true, reorderable: true },
   { columnId: 'modal', width: 100, resizable: true, reorderable: true },
   { columnId: 'harga', width: 100, resizable: true, reorderable: true },
@@ -83,6 +85,7 @@ const getColumns = (): Column[] => [
 const typesRow = {
   kode: 'text',
   nama: 'text',
+  merek: 'text',
   modal: 'number',
   unit: 'dropdown',
   harga: 'number',
@@ -111,6 +114,8 @@ const getDataRow = (data: DataBarangFull, columnId: ColumnId) => {
       return { text: data.kode }
     case 'nama':
       return { text: data.nama }
+    case 'merek':
+      return { text: data?.merek || '' }
     case 'unit':
       return {
         selectedValue: data.selectedUnitId,
@@ -245,9 +250,13 @@ const TableBarang = ({
       }
 
       // console.log(change, 'change')
-      if (change.type === 'text' && typeof dataRow[fieldName] === 'string') {
+      if (change.type === 'text') {
         dataRow[fieldName] = change.newCell.text as never
-        if (change.columnId === 'kode' || change.columnId === 'nama') {
+        if (
+          change.columnId === 'kode' ||
+          change.columnId === 'nama' ||
+          change.columnId === 'merek'
+        ) {
           editBarangData(columnId as string, change.rowId as number, change.newCell.text as never)
           setSearchBarangs((prev) => {
             let newPrev = [...prev]

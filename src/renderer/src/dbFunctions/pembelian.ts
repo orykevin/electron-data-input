@@ -124,6 +124,7 @@ export const savePembelian = async (
           unitBarangId: h.unitSelected ? Number(h.unitSelected) : h.unitBarang?.id,
           harga: h.harga,
           jumlah: h.jumlah,
+          diskon: h.diskon,
           pembelianId: createdPembelian[0].id
         })
       })
@@ -159,6 +160,7 @@ export const updatePembelian = async (
                 : newPembelian.unitBarang?.id,
               updateAt: new Date(),
               harga: newPembelian.harga,
+              diskon: newPembelian.diskon,
               jumlah: newPembelian.jumlah
             })
             .where(eq(pembelianBarang.id, b.id))
@@ -175,6 +177,7 @@ export const updatePembelian = async (
             unitBarangId: h.unitSelected ? Number(h.unitSelected) : h.unitBarang?.id,
             harga: h.harga,
             jumlah: h.jumlah,
+            diskon: h.diskon,
             pembelianId: id
           })
         })

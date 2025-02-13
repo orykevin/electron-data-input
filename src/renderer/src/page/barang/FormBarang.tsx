@@ -21,6 +21,7 @@ type Props = {
 const schema = z.object({
   kode: z.string().min(1, { message: 'Kode harus diisi' }),
   nama: z.string().min(1, { message: 'Nama harus diisi' }),
+  merek: z.string(),
   modal: z.number(),
   // unit: z.string(),
   listHarga: z.array(
@@ -48,6 +49,7 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: P
     ? {
         kode: selectedBarang.kode,
         nama: selectedBarang.nama,
+        merek: selectedBarang.merek || '',
         modal: selectedBarang.modal,
         stockAwal: selectedBarang.stockAwal,
         stockMasuk: selectedBarang?.stokMasuk || 0,
@@ -137,6 +139,7 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: P
               displayError
               className="min-w-[300px] focus:border-blue-500 focus:border-2"
             />
+            <FormInput label="merek" name="merek" fieldClassName="max-w-[150px]" />
             <InputNumber label="Modal" name="modal" fieldClassName="max-w-[200px]" />
             <InputNumber label="Stok Awal" name="stockAwal" fieldClassName="max-w-[150px]" />
           </div>
