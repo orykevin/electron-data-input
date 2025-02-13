@@ -126,6 +126,7 @@ export const savePenjualan = async (
           unitBarangId: h.unitSelected ? Number(h.unitSelected) : h.unitBarang?.id,
           harga: h.harga,
           jumlah: h.jumlah,
+          diskon: h.diskon,
           penjualanId: createdPenjualan[0].id
         })
       })
@@ -161,6 +162,7 @@ export const updatePenjualan = async (
                 : newPenjualan.unitBarang?.id,
               updateAt: new Date(),
               harga: newPenjualan.harga,
+              diskon: newPenjualan.diskon,
               jumlah: newPenjualan.jumlah
             })
             .where(eq(penjualanBarang.id, b.id))
@@ -177,6 +179,7 @@ export const updatePenjualan = async (
             unitBarangId: h.unitSelected ? Number(h.unitSelected) : h.unitBarang?.id,
             harga: h.harga,
             jumlah: h.jumlah,
+            diskon: h.diskon,
             penjualanId: id
           })
         })

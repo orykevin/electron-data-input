@@ -13,7 +13,8 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', {
       ...electronAPI,
-      getAppVersion: () => ipcRenderer.invoke('get-app-version')
+      getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+      printInvoice: (content: string) => ipcRenderer.send('print-invoice', content)
     })
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {

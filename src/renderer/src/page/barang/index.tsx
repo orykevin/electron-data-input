@@ -94,7 +94,7 @@ const Barang = () => {
           <div>
             {selectedBarang && (
               <FormBarang
-                setBarangs={setSearchBarangs}
+                setBarangs={setBarangs}
                 type="edit"
                 selectedBarang={selectedBarang}
                 setSelectedBarangId={setSelectedBarangId}

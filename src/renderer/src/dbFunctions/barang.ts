@@ -116,6 +116,7 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
     kode: data.kode,
     nama: data.nama,
     modal: data.modal,
+    merek: data.merek,
     stockAwal: data.stockAwal
   }
 
@@ -260,6 +261,8 @@ export const editBarangData = async (field: string, id: number, value: any) => {
       await database.update(barang).set({ modal: value }).where(eq(barang.id, id))
     } else if (field === 'stockAwal') {
       await database.update(barang).set({ stockAwal: value }).where(eq(barang.id, id))
+    } else if (field === 'merek') {
+      await database.update(barang).set({ merek: value }).where(eq(barang.id, id))
     }
     return 'Succsess'
   } catch (e) {

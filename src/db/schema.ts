@@ -10,6 +10,7 @@ export const barang = sqliteTable('barang', {
   nama: text('nama').notNull().default(''),
   modal: int('modal').notNull().default(0),
   stockAwal: int('stockAwal').notNull().default(0),
+  merek: text('merek'),
   ...timeStampRow
 })
 
@@ -131,6 +132,7 @@ export const pembelianBarang = sqliteTable('pembelian_barang', {
   unitBarangId: int('unitBarangId').references((): AnySQLiteColumn => unitBarang.id),
   harga: int('harga').notNull().default(0),
   jumlah: int('jumlah').notNull().default(1),
+  diskon: int('diskon'),
   ...timeStampRow
 })
 
@@ -140,6 +142,7 @@ export const penjualanBarang = sqliteTable('penjualan_barang', {
   unitBarangId: int('unitBarangId').references((): AnySQLiteColumn => unitBarang.id),
   harga: int('harga').notNull().default(0),
   jumlah: int('jumlah').notNull().default(1),
+  diskon: int('diskon'),
   ...timeStampRow
 })
 

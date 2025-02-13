@@ -63,8 +63,10 @@ export type DataPembelianFull = Pembelian
 const columnMap = {
   kodeBarang: 'Kode Barang',
   namaBarang: 'Nama Barang',
+  merek: 'Merek',
   jumlah: 'Jumlah',
   unit: 'Unit',
+  diskon: 'Diskon',
   harga: 'Harga',
   total: 'Total',
   delete: ''
@@ -75,18 +77,22 @@ type ColumnId = keyof typeof columnMap
 const getColumns = (): Column[] => [
   { columnId: 'kodeBarang', width: 120, resizable: true, reorderable: true },
   { columnId: 'namaBarang', width: 300, resizable: true, reorderable: true },
-  { columnId: 'jumlah', width: 100, resizable: true, reorderable: true },
-  { columnId: 'unit', width: 100, resizable: true, reorderable: true },
-  { columnId: 'harga', width: 240, resizable: true, reorderable: true },
-  { columnId: 'total', width: 240, resizable: true, reorderable: true },
+  { columnId: 'merek', width: 75, resizable: true, reorderable: true },
+  { columnId: 'jumlah', width: 75, resizable: true, reorderable: true },
+  { columnId: 'unit', width: 75, resizable: true, reorderable: true },
+  { columnId: 'diskon', width: 75, resizable: true, reorderable: true },
+  { columnId: 'harga', width: 200, resizable: true, reorderable: true },
+  { columnId: 'total', width: 200, resizable: true, reorderable: true },
   { columnId: 'delete', width: 40, resizable: false, reorderable: false }
 ]
 
 const typesRow = {
   kodeBarang: 'inputChange',
   namaBarang: 'inputChange',
+  merek: 'text',
   jumlah: 'number',
   unit: 'dropdown',
+  diskon: 'number',
   harga: 'number',
   total: 'number',
   delete: 'edit'
@@ -115,7 +121,6 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
     text: string
   }>(null)
   const [selectedSupplier, setSelectedSupplier] = React.useState<number | null>(null)
-
   const { toast } = useToast()
   const navigate = useNavigate()
 
@@ -246,6 +251,8 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
         return { text: barang.unitBarang?.barang?.kode || '' }
       case 'namaBarang':
         return { text: barang?.namaBarang || barang.unitBarang?.barang?.nama || '' }
+      case 'merek':
+        return { text: barang.unitBarang?.barang?.merek || '' }
       case 'jumlah':
         return { value: barang.jumlah || 1 }
       case 'unit':
@@ -259,8 +266,12 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
         }
       case 'harga':
         return { value: barang.harga || 0 }
+      case 'diskon':
+        return { value: barang.diskon || 0 }
       case 'total':
-        return { value: (barang.jumlah || 1) * (barang.harga || 0) || 0, nonEditable: true }
+        const subTotal = (barang.jumlah || 1) * (barang.harga || 0)
+        const totalDiskon = barang.diskon ? subTotal * (barang.diskon / 100) : 0
+        return { value: subTotal - totalDiskon || 0, nonEditable: true }
       case 'delete':
         return { text: data.id.toString(), openedId: data.id + 1, icon: 'delete' }
       default:
@@ -442,6 +453,17 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
     }
   }
 
+  const subTotal = () => {
+    return (
+      listBarang.reduce((a, b) => {
+        const subTotal = b.jumlah * b.harga
+        const disc = b.diskon ? subTotal * (b.diskon / 100) : 0
+        return a + subTotal - disc
+      }, 0) *
+      (1 - (diskon || 0) / 100)
+    )
+  }
+
   return (
     <div
       className="relative h-[calc(100vh-120px)]"
@@ -506,27 +528,13 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
                 </div>
                 <div className="flex gap-3 items-center">
                   <p className="text-[18px] font-semibold">
-                    Sub Total:{' '}
-                    {formatWithThousandSeparator(
-                      listBarang.reduce((a, b) => a + b.jumlah * b.harga, 0) *
-                        (1 - (diskon || 0) / 100)
-                    )}
+                    Sub Total: {formatWithThousandSeparator(subTotal())}
                   </p>
                   <p className="text-[18px] font-semibold">
-                    Pajak:{' '}
-                    {formatWithThousandSeparator(
-                      listBarang.reduce((a, b) => a + b.jumlah * b.harga, 0) *
-                        (1 - (diskon || 0) / 100) *
-                        ((pajak || 0) / 100)
-                    )}
+                    Pajak: {formatWithThousandSeparator(subTotal() * ((pajak || 0) / 100))}
                   </p>
                   <p className="text-sm font-bold">
-                    Total:{' '}
-                    {formatWithThousandSeparator(
-                      listBarang.reduce((a, b) => a + b.jumlah * b.harga, 0) *
-                        (1 - (diskon || 0) / 100) *
-                        (1 + (pajak || 0) / 100)
-                    )}
+                    Total: {formatWithThousandSeparator(subTotal() * (1 + (pajak || 0) / 100))}
                   </p>
                 </div>
               </div>
