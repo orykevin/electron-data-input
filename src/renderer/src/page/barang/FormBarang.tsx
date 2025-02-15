@@ -139,7 +139,7 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: P
               displayError
               className="min-w-[300px] focus:border-blue-500 focus:border-2"
             />
-            <FormInput label="merek" name="merek" fieldClassName="max-w-[150px]" />
+            <FormInput label="Merek" name="merek" fieldClassName="max-w-[150px]" />
             <InputNumber label="Modal" name="modal" fieldClassName="max-w-[200px]" />
             <InputNumber label="Stok Awal" name="stockAwal" fieldClassName="max-w-[150px]" />
           </div>

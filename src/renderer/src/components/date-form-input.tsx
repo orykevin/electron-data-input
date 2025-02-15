@@ -39,8 +39,6 @@ export default function DateFormInput({ label, disabled, defaultValue, name }: P
   const { watch, setValue } = useFormContext()
   const value = watch(name)
 
-  console.log(value, 'datevalue')
-
   const dateValue = () => {
     const dateData = value && value !== '' ? value : now.toDate('Asia/Jakarta')
     const day = dateData.getDate()

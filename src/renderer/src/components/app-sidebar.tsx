@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Home, Package, ReceiptText, ShoppingBag, Store, UserCog } from 'lucide-react'
+import { Home, Package, ReceiptText, Settings, ShoppingBag, Store, UserCog } from 'lucide-react'
 
 import {
   Sidebar,
@@ -73,6 +73,11 @@ const data = {
           url: '/daftar-supplier'
         }
       ]
+    },
+    {
+      name: 'Pengaturan',
+      url: '/pengaturan',
+      icon: Settings
     }
   ]
 }

@@ -16,6 +16,8 @@ import PengaturanUnit from './page/pengaturan-unit'
 import PembelianPage from './page/pembelian'
 import HistoriPembelian from './page/history-pembelian'
 import HistoriBarang from './page/histori-barang'
+import PengaturanPage from './page/pengaturan'
+import PengaturanPrint from './page/pengaturan/PengaturanPrint'
 
 function App(): JSX.Element {
   const { data: userData } = useUser()
@@ -61,6 +63,8 @@ function App(): JSX.Element {
                 element={<PembelianPage mode="edit" key={'edit-pembelian'} />}
               ></Route>
               <Route path="list-barang/histori-barang/:id" element={<HistoriBarang />}></Route>
+              <Route path="pengaturan" element={<PengaturanPage />}></Route>
+              <Route path="pengaturan-print" element={<PengaturanPrint />}></Route>
             </Routes>
 
             <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />

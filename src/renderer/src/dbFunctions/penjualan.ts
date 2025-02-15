@@ -1,5 +1,5 @@
 import { database } from '@/db'
-import { and, eq, gte, InferSelectModel, lte } from 'drizzle-orm'
+import { and, desc, eq, gte, InferSelectModel, lte } from 'drizzle-orm'
 import { penjualan, penjualanBarang } from '../../../db/schema'
 import { DataPenjualanBarang, PenjualanFormData } from '@/page/penjualan'
 
@@ -22,6 +22,7 @@ export const getPenjualanId = async (id: number) => {
 export const getLastPenjualan = async () => {
   return await database.query.penjualan.findMany({
     with: { penjualanBarang: true },
+    orderBy: desc(penjualan.id),
     limit: 10
   })
 }

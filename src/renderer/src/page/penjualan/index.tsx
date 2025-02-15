@@ -29,11 +29,13 @@ import DialogBarangTabel from './DialogBarangTabel'
 import DialogUpdatePelanggan from '../pelanggan/DialogUpdatePelanggan'
 import { formatWithThousandSeparator, generateInvoceKode } from '@/lib/utils'
 import InputNumber from '@/components/input-number'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useToast } from '@/lib/hooks/use-toast'
 import { getTableSequence } from '@/dbFunctions/sequence'
 import { LinkButtonIcon } from '@/components/ui/link-button'
 import { penjualanContent } from '@/print/invoicePenjualan'
+import useUser from '@/store/useUserStore'
+import usePengaturanPrint from '@/store/usePengaturanPrint'
 
 export const formSchema = z.object({
   noInvoice: z.string().min(1, { message: 'No Invoice harus diisi' }),
@@ -110,13 +112,15 @@ const reorderArray = <T extends {}>(arr: T[], idxs: number[], to: number) => {
 }
 
 const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
+  const { data: pengaturanPrint, fetchData: fetchPengaturanPrint } = usePengaturanPrint()
+  const { data: userData } = useUser()
   const [isOpen, setIsOpen] = React.useState(false)
   const { data: allPelanggan, fetchData } = useAllPelanggan()
   const [data, setData] = React.useState<DataPenjualanFull | undefined>(undefined)
   const [listBarang, setListBarang] = React.useState<DataPenjualanBarang>([])
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
   const [selectedIds, setSelectedIds] = React.useState<number | null>(null)
-  const [isCash, setIsCash] = React.useState(true)
+  const [isCash, setIsCash] = React.useState(false)
   const [kodeSequence, setKodeSequence] = React.useState<number | null>(null)
   const [openBarang, setOpenBarang] = React.useState<null | {
     mode: 'kode' | 'nama'
@@ -125,7 +129,6 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   const [selectedPelanggan, setSelectedPelanggan] = React.useState<number | null>(null)
 
   const { toast } = useToast()
-  const navigate = useNavigate()
 
   const [cellChangesIndex, setCellChangesIndex] = React.useState(() => -1)
   const [cellChanges, setCellChanges] = React.useState<CellChange[][]>(() => [])
@@ -145,7 +148,6 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
     resolver: zodResolver(formSchema)
   })
 
-  const tanggalValue = form.watch('tanggal')
   const pelanggan = form.watch('pelanggan')
   const pajak = form.watch('pajak')
   const diskon = form.watch('diskon')
@@ -177,12 +179,6 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   }, [pelanggan])
 
   useEffect(() => {
-    if (isCash) {
-      form.setValue('jatuhTempo', tanggalValue)
-    }
-  }, [tanggalValue, isCash])
-
-  useEffect(() => {
     if (mode === 'edit') {
       getPenjualan(Number(param.id)).then((res) => {
         if (res) {
@@ -205,6 +201,9 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
           form.setValue('jatuhTempo', res?.tanggalBayar || new Date())
           form.setValue('diskon', res?.diskon || 0)
           form.setValue('pajak', res?.pajak || 0)
+          if (res.tanggal?.toString() === res.tanggalBayar?.toString()) {
+            setIsCash(true)
+          }
         }
       })
     } else {
@@ -217,16 +216,17 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
       })
     }
     fetchData()
+    fetchPengaturanPrint()
   }, [])
 
-  const onSubmit = async (value: PenjualanFormData) => {
+  const onSubmit = async (value: PenjualanFormData, isPrinting: boolean) => {
+    let isDone = false
     if (mode === 'baru') {
       if (!listBarang.length) {
         toast({ title: 'Error', description: 'Barang belum dipilih' })
         return
       }
-      savePenjualan(value, listBarang).then((res) => {
-        console.log(res, 'res sub')
+      await savePenjualan(value, listBarang).then((res) => {
         if (res) {
           toast({ title: 'Success', description: 'Penjualan berhasil disimpan' })
           form.reset()
@@ -239,13 +239,36 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
             }
             return null
           })
+          isDone = true
         }
       })
     } else {
-      updatePenjualan(Number(param.id), value, listBarang).then((res) => {
+      await updatePenjualan(Number(param.id), value, listBarang).then((res) => {
         if (res) {
           toast({ title: 'Success', description: 'Perubahan Penjualan berhasil disimpan' })
-          navigate('/histori-penjualan')
+          isDone = true
+        }
+      })
+    }
+
+    if (isPrinting && isDone) {
+      getPenjualan(Number(param.id)).then((res) => {
+        if (res) {
+          const pengaturanPrintPenjualan = pengaturanPrint.find((p) => p.name === 'Print Penjualan')
+          if (!pengaturanPrintPenjualan) return
+          const pelangganData = allPelanggan.find((p) => p.id === res.pelangganId)
+          if (pelangganData) {
+            const penjualanStringHTML = penjualanContent(
+              res,
+              pelangganData,
+              {
+                user: userData?.username || '',
+                tanggal: new Date()
+              },
+              pengaturanPrintPenjualan.value!
+            )
+            penjualanStringHTML && window.electron.printInvoice(penjualanStringHTML)
+          }
         }
       })
     }
@@ -461,13 +484,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   }
 
   const handlePrint = () => {
-    if (data) {
-      const pelangganData = allPelanggan.find((p) => p.id === data.pelangganId)
-      if (pelangganData) {
-        const penjualanStringHTML = penjualanContent(data, pelangganData)
-        penjualanStringHTML && window.electron.printInvoice(penjualanStringHTML)
-      }
-    }
+    onSubmit(form.getValues(), true)
   }
 
   const subTotal = () => {
@@ -479,6 +496,13 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
       }, 0) *
       (1 - (diskon || 0) / 100)
     )
+  }
+
+  const handleCheckTunai = (checked: boolean) => {
+    setIsCash(checked)
+    if (checked) {
+      form.setValue('jatuhTempo', form.getValues('tanggal') || new Date())
+    }
   }
 
   return (
@@ -498,7 +522,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
       }}
     >
       <FormProvider {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit((value) => onSubmit(value, false))}>
           <HeaderBase>{mode === 'baru' ? 'Buat penjualan Baru' : 'Edit Penjualan'}</HeaderBase>
           <div className="space-y-1">
             <div className="flex gap-3 justify-start items-end">
@@ -524,8 +548,8 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
                 <input
                   type="checkbox"
                   className="scale-150"
-                  defaultChecked={isCash}
-                  onChange={(e) => setIsCash(e.target.checked)}
+                  checked={isCash}
+                  onChange={(e) => handleCheckTunai(e.target.checked)}
                 />
                 Tunai
               </label>
@@ -538,17 +562,12 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
             <div className="w-[calc(100%-324px)] h-max bg-white fixed bottom-0 border-2 border-gray-200 py-3 rounded-t-md shadow-sm z-[50]">
               <div className="flex gap-2 justify-between px-4">
                 <div className="flex gap-3 items-center w-16">
-                  <label className="min-w-max">Pajak (%) : </label>
-                  <InputNumber name="pajak" />
                   <label className="min-w-max">Diskon (%) : </label>
                   <InputNumber name="diskon" />
                 </div>
                 <div className="flex gap-3 items-center">
                   <p className="text-[18px] font-semibold">
                     Sub Total: {formatWithThousandSeparator(subTotal())}
-                  </p>
-                  <p className="text-[18px] font-semibold">
-                    Pajak: {formatWithThousandSeparator(subTotal() * ((pajak || 0) / 100))}
                   </p>
                   <p className="text-sm font-bold">
                     Total: {formatWithThousandSeparator(subTotal() * (1 + (pajak || 0) / 100))}
@@ -560,7 +579,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
                   Batal
                 </LinkButtonIcon>
                 <Button className="!mt-3 w-full h-10" onClick={handlePrint}>
-                  {mode === 'baru' ? 'Cetak & Simpan' : 'Cetak'}
+                  {mode === 'baru' ? 'Cetak & Simpan' : 'Cetak & Simpan'}
                 </Button>
                 <Button type="submit" className="!mt-3 w-full h-10">
                   {mode === 'baru' ? 'Buat penjualan' : 'Simpan Penjualan'}

@@ -83,7 +83,9 @@ const Main = () => {
                       Rp.
                       {getTotalAfterTax(
                         item.penjualanBarang.reduce(
-                          (total, barang) => total + (barang.harga || 0) * barang.jumlah,
+                          (total, barang) =>
+                            total +
+                            (barang.harga || 0) * barang.jumlah * (1 - (barang?.diskon || 0) / 100),
                           0
                         ),
                         item?.pajak || 0,

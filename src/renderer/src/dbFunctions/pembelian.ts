@@ -1,5 +1,5 @@
 import { database } from '@/db'
-import { and, eq, gte, InferSelectModel, lte } from 'drizzle-orm'
+import { and, desc, eq, gte, InferSelectModel, lte } from 'drizzle-orm'
 import { pembelian, pembelianBarang } from '../../../db/schema'
 import { DataPembelianBarang, PembelianFormData } from '@/page/pembelian'
 
@@ -22,6 +22,7 @@ export const getPembelianId = async (id: number) => {
 export const getLastPembelian = async () => {
   return await database.query.pembelian.findMany({
     with: { pembelianBarang: true },
+    orderBy: desc(pembelian.id),
     limit: 10
   })
 }
