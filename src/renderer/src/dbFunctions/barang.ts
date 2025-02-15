@@ -53,6 +53,7 @@ export const createBarang = async (data: FormDataBarang) => {
   const dataBarang = {
     kode: data.kode,
     nama: data.nama,
+    merek: data.merek,
     modal: data.modal,
     stockAwal: data.stockAwal
   }

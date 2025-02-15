@@ -114,7 +114,7 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   const [listBarang, setListBarang] = React.useState<DataPembelianBarang>([])
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
   const [selectedIds, setSelectedIds] = React.useState<number | null>(null)
-  const [isCash, setIsCash] = React.useState(true)
+  const [isCash, setIsCash] = React.useState(false)
   const [kodeSequence, setKodeSequence] = React.useState<number | null>(null)
   const [openBarang, setOpenBarang] = React.useState<null | {
     mode: 'kode' | 'nama'
@@ -142,7 +142,6 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
     resolver: zodResolver(formSchema)
   })
 
-  const tanggalValue = form.watch('tanggal')
   const supplier = form.watch('supplier')
   const pajak = form.watch('pajak')
   const diskon = form.watch('diskon')
@@ -174,12 +173,6 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   }, [supplier])
 
   useEffect(() => {
-    if (isCash) {
-      form.setValue('jatuhTempo', tanggalValue)
-    }
-  }, [tanggalValue, isCash])
-
-  useEffect(() => {
     if (mode === 'edit') {
       getPembelian(Number(param.id)).then((res) => {
         if (res) {
@@ -202,6 +195,9 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
           form.setValue('jatuhTempo', res?.tanggalBayar || new Date())
           form.setValue('diskon', res?.diskon || 0)
           form.setValue('pajak', res?.pajak || 0)
+          if (res.tanggal?.toString() === res.tanggalBayar?.toString()) {
+            setIsCash(true)
+          }
         }
       })
     } else {
@@ -219,7 +215,6 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
         return
       }
       savePembelian(value, listBarang).then((res) => {
-        console.log(res, 'res sub')
         if (res) {
           toast({ title: 'Success', description: 'Pembelian berhasil disimpan' })
           form.reset()
@@ -464,6 +459,13 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
     )
   }
 
+  const handleCheckTunai = (checked: boolean) => {
+    setIsCash(checked)
+    if (checked) {
+      form.setValue('jatuhTempo', form.getValues('tanggal') || new Date())
+    }
+  }
+
   return (
     <div
       className="relative h-[calc(100vh-120px)]"
@@ -507,8 +509,8 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
                 <input
                   type="checkbox"
                   className="scale-150"
-                  defaultChecked={isCash}
-                  onChange={(e) => setIsCash(e.target.checked)}
+                  checked={isCash}
+                  onChange={(e) => handleCheckTunai(e.target.checked)}
                 />
                 Tunai
               </label>

@@ -201,3 +201,10 @@ export const user = sqliteTable('user', {
   isSuperAdmin: int('isSuperAdmin', { mode: 'boolean' }),
   isAdmin: int('isAdmin', { mode: 'boolean' })
 })
+
+export const pengaturanPrint = sqliteTable('pengaturan_print', {
+  id: int('id').primaryKey({ autoIncrement: true }),
+  name: text('name'),
+  value: text('value'),
+  options: text('options')
+})

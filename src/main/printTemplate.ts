@@ -6,12 +6,11 @@ export const htmlBase = (content: string) => `
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-
       body {
         font-family: 'Courier New', Courier, monospace;
-        font-size: 14pt;
+        font-size: 12pt;
         font-weight: bold;
-        line-height: 1.2;
+        line-height: 1.1;
         margin: 0;
         padding: 0;
       }
@@ -22,8 +21,7 @@ export const htmlBase = (content: string) => `
       }
       .invoice {
         width: 100%;
-        padding: 20px;
-        border: 1px solid #000;
+        padding: 10px 10px 0px 10px;
       }
       .invoice-info{
         display: flex;
@@ -37,17 +35,45 @@ export const htmlBase = (content: string) => `
         margin: 10px 0;
       }
       table{
-        width: calc(100% + 40px);
+        width: calc(100%);
+        margin-left: 10px;
       }
-      table, th, td {
-        border: 1px solid black;
+      table, th {
+        border-top: 1px solid black;
+        border-bottom: 1px solid black;
         border-collapse: collapse;
      }
-     .kode-container{
-        width: 150px;
+
+     td{
+        text-align: right;
+        margin-right: 4px;
+        padding-right: 2px;
+     }
+     .no-container{
+        width: 30px;
+     }
+    .no-value{
+      text-align: left;
+    }
+     .nama-container{
+        width: 300px;
+     }
+     .nama-value{
+      text-align: left;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      max-width: 300px;
+     }
+     .merek-container{
+        width: 75px;
      }
      .qty-container{
-        width: 80px;
+        width: 75px;
+     }
+     .qty-value{
+        text-align: right;
+        margin-right: 4px;
      }
      .price-container{
         width: 150px;
@@ -59,13 +85,31 @@ export const htmlBase = (content: string) => `
         width: 100%;
         display: flex;
         justify-content: space-between;
-        border: 1px solid #000;
         padding: 0px 20px;
-        align-items: center;
+        align-items: start;
+        line-height: 0.75;
+        position: absolute;
+        bottom: 0;
      }
      .total-final{
-        font-size: 16pt;
+        font-size: 14pt;
      }
+     .footer-left{
+        height: 100%;
+     }
+     .printed-by{
+        position: absolute;
+        bottom: 0px;
+     }
+    .printed-bottom{
+      margin-bottom: 0;
+    }
+    .total-footer{
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        max-height: 32px;
+    };
     </style>
     <title>Invoice Penjualan</title>
   </head>
