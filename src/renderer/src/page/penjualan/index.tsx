@@ -488,14 +488,11 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   }
 
   const subTotal = () => {
-    return (
-      listBarang.reduce((a, b) => {
-        const subTotal = b.jumlah * b.harga
-        const disc = b.diskon ? subTotal * (b.diskon / 100) : 0
-        return a + subTotal - disc
-      }, 0) *
-      (1 - (diskon || 0) / 100)
-    )
+    return listBarang.reduce((a, b) => {
+      const subTotal = b.jumlah * b.harga
+      const disc = b.diskon ? subTotal * (b.diskon / 100) : 0
+      return a + subTotal - disc
+    }, 0)
   }
 
   const handleCheckTunai = (checked: boolean) => {
@@ -569,8 +566,9 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
                   <p className="text-[18px] font-semibold">
                     Sub Total: {formatWithThousandSeparator(subTotal())}
                   </p>
+                  <p>Diskon: {formatWithThousandSeparator((subTotal() * (diskon || 0)) / 100)}</p>
                   <p className="text-sm font-bold">
-                    Total: {formatWithThousandSeparator(subTotal() * (1 + (pajak || 0) / 100))}
+                    Total: {formatWithThousandSeparator(subTotal() * (1 - (diskon || 0) / 100))}
                   </p>
                 </div>
               </div>
