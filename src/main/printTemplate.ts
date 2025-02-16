@@ -6,6 +6,10 @@ export const htmlBase = (content: string) => `
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
+      @page {
+        size: A4;
+        margin: 0;
+      }
       body {
         font-family: 'Courier New', Courier, monospace;
         font-size: 12pt;
@@ -110,6 +114,12 @@ export const htmlBase = (content: string) => `
         gap: 12px;
         max-height: 32px;
     };
+    @media print {
+        @page {
+          size: A4;
+          margin: 0;
+        }
+    }
     </style>
     <title>Invoice Penjualan</title>
   </head>

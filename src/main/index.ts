@@ -59,24 +59,24 @@ function printInvoice(content: string) {
 
   // Print the document
   printWindow.webContents.on('did-finish-load', () => {
-    // printWindow.webContents.print(
-    //   {
-    //     silent: true, // Set to false to show the print dialog
-    //     printBackground: true
-    //     // deviceName: 'Your_Dot_Matrix_Printer_Name' // Specify the printer name
-    //   },
-    //   (success, errorType) => {
-    //     printWindow.close()
-    //     if (!success) {
-    //       console.error('Print failed:', errorType)
-    //       return 'Print gagal'
-    //     } else {
-    //       console.log('Print successful')
-    //       return 'Print Sukses'
-    //     }
-    //     // Close the print window after printing
-    //   }
-    // )
+    printWindow.webContents.print(
+      {
+        silent: true, // Set to false to show the print dialog
+        printBackground: true
+        // deviceName: 'Your_Dot_Matrix_Printer_Name' // Specify the printer name
+      },
+      (success, errorType) => {
+        printWindow.close()
+        if (!success) {
+          console.error('Print failed:', errorType)
+          return 'Print gagal'
+        } else {
+          console.log('Print successful')
+          return 'Print Sukses'
+        }
+        // Close the print window after printing
+      }
+    )
   })
 }
 
