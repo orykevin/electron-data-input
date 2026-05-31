@@ -101,10 +101,21 @@ const getDataRow = (data: DataBarangFull, columnId: ColumnId) => {
     label: u.unit?.unit,
     value: u.unit?.id.toString()
   }))
-  const hargaLainOptions = unitSelect?.hargaLain.map((h) => ({
-    label: formatWithThousandSeparator(h.harga),
-    value: h.id.toString()
-  }))
+  const hargaLainOptions = unitSelect?.hargaLain.map((h) => {
+    const formattedHarga = formatWithThousandSeparator(h.harga)
+    let label = `Rp ${formattedHarga} (Harga Tetap)`
+    if (h.mode === 'persen_harga') {
+      const sign = h.nilai >= 0 ? '+' : ''
+      label = `Rp ${formattedHarga} (${sign}${h.nilai}% dari Harga)`
+    } else if (h.mode === 'persen_modal') {
+      const sign = h.nilai >= 0 ? '+' : ''
+      label = `Rp ${formattedHarga} (${sign}${h.nilai}% dari Modal)`
+    }
+    return {
+      label,
+      value: h.id.toString()
+    }
+  })
 
   switch (columnId) {
     case 'kode':

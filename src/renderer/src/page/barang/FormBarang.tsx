@@ -9,7 +9,7 @@ import InputNumber from '@/components/input-number'
 import useAllUnit from '@/store/useUnitStore'
 import { Delete, PlusCircle } from 'lucide-react'
 import { createBarang, DataBarang, updateBarang } from '@/dbFunctions/barang'
-import { cn } from '@/lib/utils'
+import { cn, formatWithThousandSeparator } from '@/lib/utils'
 
 type Props = {
   type?: 'edit'
@@ -27,7 +27,13 @@ const schema = z.object({
     z.object({
       unit: z.string(),
       harga: z.number(),
-      hargaLain: z.array(z.number())
+      hargaLain: z.array(
+        z.object({
+          id: z.number().optional(),
+          mode: z.enum(['harga_tetap', 'persen_harga', 'persen_modal']),
+          nilai: z.number()
+        })
+      )
     })
   ),
   // harga: z.number(),
@@ -44,7 +50,7 @@ export type FormDataBarang = z.infer<typeof schema>
 const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: Props) => {
   const { data: unitData } = useAllUnit()
 
-  const defaultValues = selectedBarang
+  const defaultValues: FormDataBarang = selectedBarang
     ? {
         kode: selectedBarang.kode,
         nama: selectedBarang.nama,
@@ -55,11 +61,19 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: P
         listHarga: selectedBarang.unitBarang.map((u) => ({
           unit: u.unit?.id.toString() || '1',
           harga: u.harga?.harga | 0,
-          hargaLain: u.hargaLain.map((h) => h?.harga | 0)
+          hargaLain: u.hargaLain.map((h) => ({
+            id: h.id,
+            mode: (h.mode as 'harga_tetap' | 'persen_harga' | 'persen_modal') || 'harga_tetap',
+            nilai: h.nilai !== undefined && h.nilai !== null ? h.nilai : (h.harga || 0)
+          }))
         }))
       }
     : {
-        listHarga: [{ unit: unitData[0]?.id.toString() || '1', harga: 0, hargaLain: [0] }],
+        kode: '',
+        nama: '',
+        modal: 0,
+        stockAwal: 0,
+        listHarga: [{ unit: unitData[0]?.id.toString() || '1', harga: 0, hargaLain: [{ mode: 'harga_tetap' as const, nilai: 0 }] }],
         stockKeluar: 0,
         stockMasuk: 0
       }
@@ -110,7 +124,7 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: P
   const listHargaValues = form.watch('listHarga')
 
   const addNewHargaLain = (index) => {
-    form.setValue(`listHarga.${index}.hargaLain`, [...listHargaValues[index].hargaLain, 0])
+    form.setValue(`listHarga.${index}.hargaLain`, [...listHargaValues[index].hargaLain, { mode: 'harga_tetap', nilai: 0 }])
   }
 
   const removeHargaLain = (index, indexHargaLain) => {
@@ -179,27 +193,58 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: P
                     name={`listHarga.${index}.harga`}
                     fieldClassName="w-40"
                   />
-                  <div className={cn(isEdit ? 'block' : 'flex items-end')}>
-                    {listHargaValues[index].hargaLain.map((_fieldLain, indexLain) => {
-                      return (
-                        <div className="relative flex items-end">
-                          <InputNumber
-                            label={'Harga Lain ' + (indexLain + 1)}
-                            name={`listHarga.${index}.hargaLain.${indexLain}`}
-                            fieldClassName="w-40"
-                          />
-                          <Button
-                            className="!w-max !h-max px-2"
-                            variant={'destructive'}
-                            onClick={() => removeHargaLain(index, indexLain)}
-                          >
-                            <Delete />
-                          </Button>
-                        </div>
-                      )
-                    })}
+                  <div className={cn(isEdit ? 'block' : 'flex items-end', 'gap-3')}>
+                    <div className="flex flex-col gap-2">
+                      {listHargaValues[index].hargaLain.map((_fieldLain, indexLain) => {
+                        return (
+                          <div className="relative flex items-end gap-2 bg-gray-50/50 p-2 border border-dashed rounded-lg" key={indexLain}>
+                            <SelectFormInput
+                              label="Tipe Harga"
+                              name={`listHarga.${index}.hargaLain.${indexLain}.mode`}
+                              placeholder="Tipe"
+                              className="w-36 h-9"
+                              options={[
+                                { value: 'harga_tetap', label: 'Harga Tetap' },
+                                { value: 'persen_harga', label: '% dari Harga' },
+                                { value: 'persen_modal', label: '% dari Modal' }
+                              ]}
+                            />
+                            <InputNumber
+                              label="Nilai"
+                              name={`listHarga.${index}.hargaLain.${indexLain}.nilai`}
+                              fieldClassName="w-28"
+                            />
+                            <div className="flex flex-col mb-1 text-[11px] text-gray-500 min-w-[100px] leading-tight">
+                              <span className="font-semibold text-gray-400">Estimasi:</span>
+                              <span className="font-mono text-blue-600 font-semibold">
+                                {(() => {
+                                  const mode = form.watch(`listHarga.${index}.hargaLain.${indexLain}.mode`)
+                                  const nilai = form.watch(`listHarga.${index}.hargaLain.${indexLain}.nilai`) || 0
+                                  const baseHarga = form.watch(`listHarga.${index}.harga`) || 0
+                                  const modal = form.watch(`modal`) || 0
+                                  let est = 0
+                                  if (mode === 'harga_tetap') est = nilai
+                                  else if (mode === 'persen_harga') est = baseHarga + Math.round((baseHarga * nilai) / 100)
+                                  else if (mode === 'persen_modal') est = modal + Math.round((modal * nilai) / 100)
+                                  return `Rp ${formatWithThousandSeparator(est)}`
+                                })()}
+                              </span>
+                            </div>
+                            <Button
+                              type="button"
+                              className="!w-max px-2 h-9 self-end"
+                              variant={'destructive'}
+                              onClick={() => removeHargaLain(index, indexLain)}
+                            >
+                              <Delete className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )
+                      })}
+                    </div>
                     <div className={cn('flex gap-2 items-end', isEdit && 'mt-2')}>
                       <Button
+                        type="button"
                         onClick={() => {
                           //   update(index, { ...field, hargaLain: [...field.hargaLain, 0] })
                           //   console.log(field, 'field')
@@ -223,7 +268,7 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: P
             <Button
               type="button"
               className="mt-3"
-              onClick={() => append({ unit: '', harga: 0, hargaLain: [0] })}
+              onClick={() => append({ unit: '', harga: 0, hargaLain: [{ mode: 'harga_tetap', nilai: 0 }] })}
               disabled={listHargaValues.length === unitData.length}
             >
               {' '}

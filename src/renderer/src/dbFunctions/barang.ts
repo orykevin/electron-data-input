@@ -80,11 +80,22 @@ export const createBarang = async (data: FormDataBarang) => {
 
         await Promise.all(
           h.hargaLain
-            .filter((hl) => hl > 0)
+            .filter((hl) => hl.nilai !== 0)
             .map(async (hl) => {
+              let effectiveHarga = 0
+              if (hl.mode === 'harga_tetap') {
+                effectiveHarga = hl.nilai
+              } else if (hl.mode === 'persen_harga') {
+                effectiveHarga = h.harga + Math.round((h.harga * hl.nilai) / 100)
+              } else if (hl.mode === 'persen_modal') {
+                effectiveHarga = data.modal + Math.round((data.modal * hl.nilai) / 100)
+              }
+
               await database.insert(hargaLain).values({
                 unitBarangId: createdUnitBarang[0].insertedId,
-                harga: hl
+                harga: effectiveHarga,
+                mode: hl.mode,
+                nilai: hl.nilai
               })
             })
         )
@@ -158,8 +169,8 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
         previousHargaLain &&
         previousUnitBarang.hargaLain.length > data.listHarga[i].hargaLain.length
       ) {
-        const restHargaLain = previousUnitBarang.hargaLain.splice(
-          -data.listHarga[i].hargaLain.length
+        const restHargaLain = previousUnitBarang.hargaLain.slice(
+          data.listHarga[i].hargaLain.length
         )
         await Promise.all(
           restHargaLain.map(async (hl) => {
@@ -191,18 +202,35 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
             const previousHL = previousHargaLain?.[il] || null
             const eqHargaLainId = previousHL ? eq(hargaLain.id, previousHL.id) : null
 
+            let effectiveHarga = 0
+            if (hl.mode === 'harga_tetap') {
+              effectiveHarga = hl.nilai
+            } else if (hl.mode === 'persen_harga') {
+              effectiveHarga = ub.harga + Math.round((ub.harga * hl.nilai) / 100)
+            } else if (hl.mode === 'persen_modal') {
+              effectiveHarga = data.modal + Math.round((data.modal * hl.nilai) / 100)
+            }
+
             if (eqHargaLainId) {
-              if (hl > 0 && previousHL.harga !== hl) {
-                await database.update(hargaLain).set({ harga: hl }).where(eqHargaLainId)
-              }
-              if (hl < 1) {
+              if (hl.nilai !== 0) {
+                await database
+                  .update(hargaLain)
+                  .set({
+                    harga: effectiveHarga,
+                    mode: hl.mode,
+                    nilai: hl.nilai
+                  })
+                  .where(eqHargaLainId)
+              } else {
                 await database.delete(hargaLain).where(eqHargaLainId)
               }
             } else {
-              if (hl > 0) {
+              if (hl.nilai !== 0) {
                 await database.insert(hargaLain).values({
                   unitBarangId: previousUnitBarang.id,
-                  harga: hl
+                  harga: effectiveHarga,
+                  mode: hl.mode,
+                  nilai: hl.nilai
                 })
               }
             }
@@ -224,11 +252,22 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
 
         await Promise.all(
           ub.hargaLain
-            .filter((hl) => hl > 0)
+            .filter((hl) => hl.nilai !== 0)
             .map(async (hl) => {
+              let effectiveHarga = 0
+              if (hl.mode === 'harga_tetap') {
+                effectiveHarga = hl.nilai
+              } else if (hl.mode === 'persen_harga') {
+                effectiveHarga = ub.harga + Math.round((ub.harga * hl.nilai) / 100)
+              } else if (hl.mode === 'persen_modal') {
+                effectiveHarga = data.modal + Math.round((data.modal * hl.nilai) / 100)
+              }
+
               await database.insert(hargaLain).values({
                 unitBarangId: newUnitBarangId[0].insertedId,
-                harga: hl
+                harga: effectiveHarga,
+                mode: hl.mode,
+                nilai: hl.nilai
               })
             })
         )

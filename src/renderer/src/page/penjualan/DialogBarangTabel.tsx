@@ -1,5 +1,6 @@
 import { TextEnter, TextEnterCell } from '@/components/tablelib/CellTemplates/TextEnter'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { formatWithThousandSeparator } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { DataBarang, getQueryBarang } from '@/dbFunctions/barang'
 import useDebounce from '@/lib/hooks/use-debounce'
@@ -74,16 +75,42 @@ const getDataRow = (data: DataFullBarang, columnId: ColumnId) => {
       }
     case 'harga':
       return { value: data.unitBarang[selectedIndex]?.harga?.harga || 0 }
-    case 'hargaLain':
+    case 'hargaLain': {
+      const baseHarga = data.unitBarang[selectedIndex]?.harga?.harga || 0
+      const modal = data.modal || 0
       return {
-        selectedValue: data.unitBarang[selectedIndex]?.hargaLain[0]?.id.toString() || null,
+        selectedValue: data.selectedHargaLain || '',
         values:
-          data.unitBarang[selectedIndex]?.hargaLain?.map((u) => ({
-            label: u.harga || '',
-            value: u.id.toString()
-          })) || [],
+          data.unitBarang[selectedIndex]?.hargaLain?.map((u) => {
+            let effectiveHarga = 0
+            if (u.mode === 'harga_tetap') {
+              effectiveHarga = u.nilai
+            } else if (u.mode === 'persen_harga') {
+              effectiveHarga = baseHarga + Math.round((baseHarga * u.nilai) / 100)
+            } else if (u.mode === 'persen_modal') {
+              effectiveHarga = modal + Math.round((modal * u.nilai) / 100)
+            } else {
+              effectiveHarga = u.harga || 0
+            }
+
+            const formattedHarga = formatWithThousandSeparator(effectiveHarga)
+            let label = `Rp ${formattedHarga} (Harga Tetap)`
+            if (u.mode === 'persen_harga') {
+              const sign = u.nilai >= 0 ? '+' : ''
+              label = `Rp ${formattedHarga} (${sign}${u.nilai}% dari Harga)`
+            } else if (u.mode === 'persen_modal') {
+              const sign = u.nilai >= 0 ? '+' : ''
+              label = `Rp ${formattedHarga} (${sign}${u.nilai}% dari Modal)`
+            }
+
+            return {
+              label,
+              value: u.id.toString()
+            }
+          }) || [],
         isOpen: data.isHargaLainOpen
       }
+    }
     default:
       return {}
   }
@@ -130,7 +157,7 @@ const SearchComponent = ({
         isUnitOpen: false,
         isHargaLainOpen: false,
         selectedUnit: d.unitBarang[0]?.id?.toString() || '',
-        selectedHargaLain: d.unitBarang[0]?.hargaLain[0]?.id.toString() || ''
+        selectedHargaLain: ''
       }))
     )
   }
@@ -193,6 +220,13 @@ const DialogBarangTabel = ({
   const [data, setData] = useState<DataFullBarang[]>([])
   const [mode, setMode] = useState<'kode' | 'nama' | null>(null)
   const [columns, setColumns] = React.useState<Column[]>(getColumns())
+  const isClosingRef = useRef(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      isClosingRef.current = false
+    }
+  }, [isOpen])
 
   const handleChangeData = (res: DataBarang) => {
     setData(
@@ -201,7 +235,7 @@ const DialogBarangTabel = ({
         isUnitOpen: false,
         isHargaLainOpen: false,
         selectedUnit: d.unitBarang[0]?.id?.toString() || '',
-        selectedHargaLain: d.unitBarang[0]?.hargaLain[0]?.id.toString() || ''
+        selectedHargaLain: ''
       }))
     )
   }
@@ -249,16 +283,35 @@ const DialogBarangTabel = ({
   // }, [])
 
   const handleDropdownChanges = (change: CellChange<DefaultCellTypes | TextEnter>) => {
+    if (isClosingRef.current) return
+    isClosingRef.current = true
+
     const dataSelected = data.find((d) => d.id === change.rowId)
     if (dataSelected) {
       const unitBarangIdx = dataSelected.unitBarang.findIndex(
         (d) => d.id.toString() === dataSelected.selectedUnit
       )
       const unitBarang = dataSelected.unitBarang[unitBarangIdx]
-      const hargaLain =
-        change.type === 'dropdown'
+      const hargaLainObj =
+        change.type === 'dropdown' && change.columnId === 'hargaLain'
           ? unitBarang.hargaLain.find((d) => d.id.toString() === change.newCell.selectedValue)
           : null
+
+      let calculatedHarga = unitBarang?.harga?.harga || 0
+      if (hargaLainObj) {
+        const baseHarga = unitBarang?.harga?.harga || 0
+        const modal = dataSelected.modal || 0
+        if (hargaLainObj.mode === 'harga_tetap') {
+          calculatedHarga = hargaLainObj.nilai
+        } else if (hargaLainObj.mode === 'persen_harga') {
+          calculatedHarga = baseHarga + Math.round((baseHarga * hargaLainObj.nilai) / 100)
+        } else if (hargaLainObj.mode === 'persen_modal') {
+          calculatedHarga = modal + Math.round((modal * hargaLainObj.nilai) / 100)
+        } else {
+          calculatedHarga = hargaLainObj.harga || 0
+        }
+      }
+
       if (selectedIds !== null) {
         setListBarang((prev) => {
           let listData = [...prev]
@@ -277,7 +330,7 @@ const DialogBarangTabel = ({
               },
               namaBarang: dataSelected.nama,
               unitSelected: dataSelected.selectedUnit || '',
-              harga: hargaLain?.harga || unitBarang?.harga?.harga || 0
+              harga: calculatedHarga
             }
           }
           return listData
@@ -286,7 +339,7 @@ const DialogBarangTabel = ({
         setListBarang((prev) => {
           const dataBarang: PenjualanBarang = {
             id: 0 - prev.length,
-            harga: hargaLain?.harga || unitBarang?.harga?.harga || 0,
+            harga: calculatedHarga,
             unitBarang: {
               barang: dataSelected,
               harga: unitBarang?.harga || null,

@@ -2,7 +2,7 @@ import DateFormInput from '@/components/date-form-input'
 import FormInput from '@/components/form-input'
 import HeaderBase from '@/components/header-base'
 import { SelectFormInput } from '@/components/select-form-input'
-import { EditCell, EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
+import { EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
 import { Button } from '@/components/ui/button'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -22,12 +22,12 @@ import { getPenjualan, Penjualan, savePenjualan, updatePenjualan } from '@/dbFun
 import { Plus } from 'lucide-react'
 import useAllPelanggan from '@/store/usePelangganStore'
 import {
-  InputChange,
   InputChangeTemplate
 } from '@/components/tablelib/CellTemplates/InputChangeTemplate'
 import DialogBarangTabel from './DialogBarangTabel'
 import DialogUpdatePelanggan from '../pelanggan/DialogUpdatePelanggan'
 import { formatWithThousandSeparator, generateInvoceKode } from '@/lib/utils'
+import { HargaSelectTemplate } from '@/components/tablelib/CellTemplates/HargaSelectTemplate'
 import InputNumber from '@/components/input-number'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '@/lib/hooks/use-toast'
@@ -88,7 +88,7 @@ const typesRow = {
   namaBarang: 'inputChange',
   jumlah: 'number',
   unit: 'dropdown',
-  harga: 'number',
+  harga: 'hargaSelect',
   total: 'number',
   delete: 'edit'
 }
@@ -263,7 +263,12 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
           isOpen: barang.isUnitSelectOpen
         }
       case 'harga':
-        return { value: barang.harga || 0 }
+        return {
+          type: 'hargaSelect',
+          value: barang.harga || 0,
+          unitBarang: barang.unitBarang,
+          unitSelected: barang.unitSelected
+        }
       case 'total':
         return { value: (barang.jumlah || 1) * (barang.harga || 0) || 0, nonEditable: true }
       case 'delete':
@@ -299,7 +304,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   )
 
   const applyNewValue = (
-    changes: CellChange<DefaultCellTypes | InputChange | EditCell>[],
+    changes: CellChange<any>[],
     prevData: DataPenjualanBarang,
     _usePrevValue: boolean = false
   ): DataPenjualanBarang => {
@@ -320,6 +325,8 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
         // })
       } else if (change.type === 'number') {
         dataRow[fieldName] = change.newCell.value as never
+      } else if (change.type === 'hargaSelect') {
+        dataRow.harga = change.newCell.value as never
       } else if (change.type === 'inputChange') {
         if (change.columnId === 'kodeBarang') {
           setOpenBarang({ mode: 'kode', text: change.newCell.text })
@@ -563,7 +570,8 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
           stickyTopRows={1}
           customCellTemplates={{
             edit: new EditTemplateCell(),
-            inputChange: new InputChangeTemplate()
+            inputChange: new InputChangeTemplate(),
+            hargaSelect: new HargaSelectTemplate()
           }}
         />
         <div className="w-full border bg-white z-10 border-gray-100 shadow-md py-2 px-2 hover:bg-blue-200 focus-within:bg-blue-200 rounded-b-md">

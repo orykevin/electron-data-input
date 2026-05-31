@@ -8,4 +8,5 @@ export * from './TextCellTemplate';
 export * from './TimeCellTemplate';
 export * from './DropdownCellTemplate';
 export * from './keyCodeCheckings';
-export * from './getCharFromKeyCode'; 
+export * from './getCharFromKeyCode';
+export * from './HargaSelectTemplate'; 

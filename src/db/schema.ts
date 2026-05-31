@@ -40,6 +40,8 @@ export const hargaLain = sqliteTable('harga_lain', {
   unitBarangId: int('unitBarangId').references((): AnySQLiteColumn => unitBarang.id),
   harga: int('harga').notNull().default(0),
   persen: int('persen'),
+  mode: text('mode').notNull().default('harga_tetap'),
+  nilai: int('nilai').notNull().default(0),
   deskripsi: text('deskripsi')
 })
 
