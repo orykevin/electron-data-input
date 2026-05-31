@@ -22,15 +22,15 @@ const MenuBarang = ({ setEditable, setBarangs, setSearch, setSearchField }: Prop
   const [showForm, setShowForm] = useState(true)
 
   useEffect(() => {
-    if (searchKode !== '' && searchNama === '') {
-      setSearch(searchKode)
+    if (debounceSearchKode !== '' && debounceSearchNama === '') {
+      setSearch(debounceSearchKode)
       setSearchField('kode')
     }
-    if (searchNama !== '' && searchKode === '') {
-      setSearch(searchNama)
+    if (debounceSearchNama !== '' && debounceSearchKode === '') {
+      setSearch(debounceSearchNama)
       setSearchField('nama')
     }
-    if (searchKode === '' && searchNama === '') {
+    if (debounceSearchKode === '' && debounceSearchNama === '') {
       setSearch('')
       setSearchField('')
     }

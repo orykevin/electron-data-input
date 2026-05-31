@@ -41,11 +41,13 @@ const Barang = () => {
   }, [])
 
   useEffect(() => {
-    getBarang(page, searchField, search).then((result) => {
+    setLoading(true)
+    getBarang(0, searchField, search).then((result) => {
       setBarangs(result)
       setSearchBarangs(result)
       setLoading(false)
     })
+    setPage(0)
   }, [search, searchField])
 
   useEffect(() => {
