@@ -27,7 +27,7 @@
     "db:migrate": "node -r esbuild-register ./src/db/migrate.ts",
     "db:seed": "node -r esbuild-register ./src/db/seed.ts",
     "rebuild:drizzle": "pnpm rebuild better-sqlite3",
-    "rebuild:electron": "electron-rebuild -f -w better-sqlite3-electron && electron-builder install-app-deps",
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3 && electron-builder install-app-deps",
     "push:app": "pnpm drizzle-kit push:sqlite --config ./drizzle.config2.ts"
   },
   "dependencies": {
@@ -94,5 +94,10 @@
     "tsx": "^4.19.2",
     "typescript": "^5.3.3",
     "vite": "^5.0.12"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
   }
 }
