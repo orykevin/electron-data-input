@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -91,46 +91,69 @@ app.on('window-all-closed', () => {
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
 
-// autoUpdater
+// autoUpdater configuration
+autoUpdater.autoDownload = false
 
-autoUpdater.on('update-available', () => {
-  log.info('Update Available')
-  const dialogOpts = {
-    type: 'info' as 'info',
-    buttons: ['Ok'],
-    title: 'Update Aplikasi Tersedia',
-    message: 'Update Aplikasi akan di download otomatis'
+function sendUpdateMessage(channel: string, ...args: any[]) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, ...args)
   }
+}
 
-  dialog.showMessageBox(mainWindow!, dialogOpts)
+// IPC Handlers for updater
+ipcMain.handle('update:check', async () => {
+  log.info('Manual update check triggered')
+  try {
+    const result = await autoUpdater.checkForUpdates()
+    return result
+  } catch (err: any) {
+    log.error('Error checking for updates:', err)
+    throw err
+  }
 })
 
-autoUpdater.on('update-downloaded', () => {
-  log.info('Update Downloaded')
-  const dialogOpts = {
-    type: 'info' as 'info',
-    buttons: ['Muat Ulang Aplikasi', 'Nanti saja'],
-    title: 'Update Aplikasi Telah terdownload',
-    message: 'Update Aplikasi sudah terdownload, muat ulang aplikasi untuk memakai versi baru'
+ipcMain.handle('update:download', async () => {
+  log.info('Download update triggered')
+  try {
+    const result = await autoUpdater.downloadUpdate()
+    return result
+  } catch (err: any) {
+    log.error('Error downloading update:', err)
+    throw err
   }
+})
 
-  dialog.showMessageBox(mainWindow!, dialogOpts).then((returnValue) => {
-    if (returnValue.response === 0) autoUpdater.quitAndInstall()
-  })
+ipcMain.handle('update:install', () => {
+  log.info('Quit and install triggered')
+  autoUpdater.quitAndInstall()
 })
 
 autoUpdater.on('checking-for-update', () => {
   log.info('Checking for update...')
+  sendUpdateMessage('update-checking')
+})
+
+autoUpdater.on('update-available', (info) => {
+  log.info('Update Available:', info)
+  sendUpdateMessage('update-available', info)
 })
 
 autoUpdater.on('update-not-available', (info) => {
   log.info('Update not available:', info)
+  sendUpdateMessage('update-not-available', info)
 })
 
 autoUpdater.on('error', (err) => {
   log.error('Error in auto-updater:', err)
+  sendUpdateMessage('update-error', err.message || err.toString())
 })
 
 autoUpdater.on('download-progress', (progressObj) => {
   log.info('Download progress:', progressObj)
+  sendUpdateMessage('download-progress', progressObj)
+})
+
+autoUpdater.on('update-downloaded', (info) => {
+  log.info('Update Downloaded:', info)
+  sendUpdateMessage('update-downloaded', info)
 })

@@ -4,7 +4,6 @@ import * as schema from '../../db/schema'
 export const database = drizzle(
   async (...args) => {
     try {
-      // @ts-expect-error
       const result = await window.api.execute(...args)
       return { rows: result }
     } catch (e: any) {

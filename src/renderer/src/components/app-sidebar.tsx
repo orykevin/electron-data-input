@@ -13,6 +13,7 @@ import {
 import { NavProjects } from './nav-projects'
 import { NavUser } from './nav-user'
 import useUser from '@/store/useUserStore'
+import { AppUpdaterModal } from './AppUpdaterModal'
 
 const data = {
   projects: [
@@ -80,6 +81,8 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: userData } = useUser()
   const [versionApp, setVersionApp] = React.useState('')
+  const [hasUpdate, setHasUpdate] = React.useState(false)
+  const [isUpdaterOpen, setIsUpdaterOpen] = React.useState(false)
 
   const navList = [
     ...data.projects,
@@ -88,11 +91,36 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   React.useEffect(() => {
     const getVer = async () => {
-      const verRes = await window.electron.getAppVersion()
-      setVersionApp(verRes)
+      try {
+        if (window.electron && typeof window.electron.getAppVersion === 'function') {
+          const verRes = await window.electron.getAppVersion()
+          setVersionApp(verRes)
+        } else {
+          setVersionApp('1.0.4')
+        }
+      } catch (err) {
+        console.error('Error fetching app version:', err)
+        setVersionApp('1.0.4')
+      }
     }
 
     getVer()
+
+    // Listen for available updates silently
+    if (
+      window.api &&
+      window.api.updater &&
+      typeof window.api.updater.onAvailable === 'function'
+    ) {
+      const unsub = window.api.updater.onAvailable(() => {
+        setHasUpdate(true)
+      })
+
+      return () => {
+        if (typeof unsub === 'function') unsub()
+      }
+    }
+    return undefined
   }, [])
 
   return (
@@ -119,7 +147,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData!} />
-        <p className="text-[12px] m-0 text-right absolute bottom-1 right-4">Version {versionApp}</p>
+        <div
+          onClick={() => setIsUpdaterOpen(true)}
+          className="flex items-center justify-end gap-1.5 absolute bottom-1 right-4 cursor-pointer hover:opacity-85 active:opacity-75 transition-all select-none bg-gray-50/50 hover:bg-gray-100/70 border border-gray-100 rounded-full px-2.5 py-0.5"
+        >
+          {hasUpdate ? (
+            <>
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span className="text-[10px] text-green-600 font-bold">Update Baru!</span>
+            </>
+          ) : (
+            <p className="text-[10px] m-0 font-medium text-gray-500">v{versionApp}</p>
+          )}
+        </div>
+
+        <AppUpdaterModal
+          isOpen={isUpdaterOpen}
+          onClose={() => setIsUpdaterOpen(false)}
+          currentVersion={versionApp}
+        />
       </SidebarFooter>
     </Sidebar>
   )
