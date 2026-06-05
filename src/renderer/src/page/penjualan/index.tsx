@@ -21,9 +21,7 @@ import z from 'zod'
 import { getPenjualan, Penjualan, savePenjualan, updatePenjualan } from '@/dbFunctions/penjualan'
 import { Plus } from 'lucide-react'
 import useAllPelanggan from '@/store/usePelangganStore'
-import {
-  InputChangeTemplate
-} from '@/components/tablelib/CellTemplates/InputChangeTemplate'
+import { InputChangeTemplate } from '@/components/tablelib/CellTemplates/InputChangeTemplate'
 import DialogBarangTabel from './DialogBarangTabel'
 import DialogUpdatePelanggan from '../pelanggan/DialogUpdatePelanggan'
 import { formatWithThousandSeparator, generateInvoceKode } from '@/lib/utils'
@@ -313,7 +311,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
       const columnId = change.columnId
       const fieldName = columnId as string
 
-      let dataRow = prevData.find((d) => d.id === dataIndex)
+      const dataRow = prevData.find((d) => d.id === dataIndex)
       if (!dataRow) {
         return
       }

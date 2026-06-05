@@ -8,6 +8,7 @@ export const barang = sqliteTable('barang', {
   id: int('id').primaryKey({ autoIncrement: true }),
   kode: text('kode').notNull().default(''),
   nama: text('nama').notNull().default(''),
+  merek: text('merek').default(''),
   modal: int('modal').notNull().default(0),
   stockAwal: int('stockAwal').notNull().default(0),
   ...timeStampRow

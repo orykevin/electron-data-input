@@ -314,7 +314,7 @@ const DialogBarangTabel = ({
 
       if (selectedIds !== null) {
         setListBarang((prev) => {
-          let listData = [...prev]
+          const listData = [...prev]
           const selectedBarangIdx = listData.findIndex((d) => d.id === selectedIds)
           if (selectedBarangIdx >= 0) {
             const updatedData = listData[selectedBarangIdx]
@@ -375,7 +375,7 @@ const DialogBarangTabel = ({
       const columnId = change.columnId
       const fieldName = columnId as string
 
-      let dataRow = prevData.find((d) => d.id === dataIndex)
+      const dataRow = prevData.find((d) => d.id === dataIndex)
       if (!dataRow) {
         return
       }
@@ -386,8 +386,8 @@ const DialogBarangTabel = ({
           handleDropdownChanges(change)
         }
       } else if (change.type === 'dropdown') {
-        let selectedField = change.columnId === 'unit' ? 'selectedUnit' : 'selectedHargaLain'
-        let isOpenState = change.columnId === 'unit' ? 'isUnitOpen' : 'isHargaLainOpen'
+        const selectedField = change.columnId === 'unit' ? 'selectedUnit' : 'selectedHargaLain'
+        const isOpenState = change.columnId === 'unit' ? 'isUnitOpen' : 'isHargaLainOpen'
         if (
           change.newCell.selectedValue &&
           !change.newCell.isOpen &&

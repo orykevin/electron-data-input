@@ -303,7 +303,7 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
       const columnId = change.columnId
       const fieldName = columnId as string
 
-      let dataRow = prevData.find((d) => d.id === dataIndex)
+      const dataRow = prevData.find((d) => d.id === dataIndex)
       if (!dataRow) {
         return
       }

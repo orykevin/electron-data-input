@@ -64,7 +64,9 @@ export class HargaSelectTemplate implements CellTemplate<HargaSelectCell> {
       <HargaSelectInput
         cell={cell}
         isInEditMode={isInEditMode}
-        onCellChanged={(updatedCell, commit) => onCellChanged(this.getCompatibleCell(updatedCell), commit)}
+        onCellChanged={(updatedCell, commit) =>
+          onCellChanged(this.getCompatibleCell(updatedCell), commit)
+        }
       />
     )
   }
@@ -125,7 +127,8 @@ const HargaSelectInput: React.FC<HargaSelectInputProps> = ({ cell, onCellChanged
 
   // Extract pricing details
   const allUnits = cell.unitBarang?.barang?.unitBarang || []
-  const selectedUnitConfig = allUnits.find((u: any) => u.id.toString() === cell.unitSelected) || cell.unitBarang
+  const selectedUnitConfig =
+    allUnits.find((u: any) => u.id.toString() === cell.unitSelected) || cell.unitBarang
   const baseHarga = selectedUnitConfig?.harga?.harga || 0
   const modal = cell.unitBarang?.barang?.modal || 0
   const hargaLainList = selectedUnitConfig?.hargaLain || []
@@ -170,7 +173,8 @@ const HargaSelectInput: React.FC<HargaSelectInputProps> = ({ cell, onCellChanged
   options.push(...calculatedHargaLainList)
 
   // Recent/Inputted Price
-  const isCustomPrice = cell.value !== baseHarga && !calculatedHargaLainList.some(opt => opt.value === cell.value)
+  const isCustomPrice =
+    cell.value !== baseHarga && !calculatedHargaLainList.some((opt) => opt.value === cell.value)
   if (isCustomPrice) {
     options.unshift({
       label: `Harga Terakhir: Rp ${formatWithThousandSeparator(cell.value)}`,
@@ -228,37 +232,38 @@ const HargaSelectInput: React.FC<HargaSelectInputProps> = ({ cell, onCellChanged
         <ChevronDown className="w-4 h-4 text-gray-500" />
       </div>
 
-      {isOpen && createPortal(
-        <div
-          ref={dropdownRef}
-          style={{
-            position: 'absolute',
-            top: coords.top,
-            left: coords.left + coords.width - 250,
-            width: '250px',
-            zIndex: 999999,
-            background: 'white',
-            border: '1px solid #e2e8f0',
-            borderRadius: '0.375rem',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-            padding: '0.25rem 0',
-            maxHeight: '200px',
-            overflowY: 'auto'
-          }}
-        >
-          {options.map((opt, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => handleSelectOption(opt.value)}
-              className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 hover:text-blue-700 text-gray-700 block transition-colors border-b border-gray-50 last:border-b-0"
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>,
-        document.body
-      )}
+      {isOpen &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            style={{
+              position: 'absolute',
+              top: coords.top,
+              left: coords.left + coords.width - 250,
+              width: '250px',
+              zIndex: 999999,
+              background: 'white',
+              border: '1px solid #e2e8f0',
+              borderRadius: '0.375rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              padding: '0.25rem 0',
+              maxHeight: '200px',
+              overflowY: 'auto'
+            }}
+          >
+            {options.map((opt, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleSelectOption(opt.value)}
+                className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 hover:text-blue-700 text-gray-700 block transition-colors border-b border-gray-50 last:border-b-0"
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }

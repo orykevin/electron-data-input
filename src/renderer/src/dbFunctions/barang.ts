@@ -9,7 +9,7 @@ import {
   unit,
   unitBarang
 } from '../../../db/schema'
-import { eq, like, sql } from 'drizzle-orm'
+import { and, eq, like, or, sql } from 'drizzle-orm'
 import { PenjualanData, PenjualanBarangData } from './penjualan'
 import { PembelianData, PembelianBarangData } from './pembelian'
 
@@ -21,11 +21,28 @@ export type DataBarangMasukKeluar = MasukKeluar & {
   pembelian?: PembelianData
 }
 
+const getSearchWhereCondition = (field: string, search: string) => {
+  const searchWords = search.trim().split(/\s+/).filter(Boolean)
+  if (field === 'kode') {
+    return like(barang.kode, `%${search.toUpperCase()}%`)
+  } else if (searchWords.length === 0) {
+    return like(barang.nama, '%%')
+  } else {
+    const conditions = searchWords.map((word) =>
+      or(
+        like(barang.nama, `%${word.toUpperCase()}%`),
+        like(barang.merek, `%${word.toUpperCase()}%`)
+      )
+    )
+    return and(...conditions)
+  }
+}
+
 export const getBarang = async (page = 0, field = '', search = '') => {
   const limit = 75
   const offsetVal = page * limit
   const result = await database.query.barang.findMany({
-    where: like(field === 'kode' ? barang.kode : barang.nama, `%${search.toUpperCase()}%`),
+    where: getSearchWhereCondition(field, search),
     with: {
       unitBarang: {
         with: {
@@ -53,6 +70,7 @@ export const createBarang = async (data: FormDataBarang) => {
   const dataBarang = {
     kode: data.kode,
     nama: data.nama,
+    merek: data.merek,
     modal: data.modal,
     stockAwal: data.stockAwal
   }
@@ -126,6 +144,7 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
   const dataBarang = {
     kode: data.kode,
     nama: data.nama,
+    merek: data.merek,
     modal: data.modal,
     stockAwal: data.stockAwal
   }
@@ -169,9 +188,7 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
         previousHargaLain &&
         previousUnitBarang.hargaLain.length > data.listHarga[i].hargaLain.length
       ) {
-        const restHargaLain = previousUnitBarang.hargaLain.slice(
-          data.listHarga[i].hargaLain.length
-        )
+        const restHargaLain = previousUnitBarang.hargaLain.slice(data.listHarga[i].hargaLain.length)
         await Promise.all(
           restHargaLain.map(async (hl) => {
             await database.delete(hargaLain).where(eq(hargaLain.id, hl.id))
@@ -295,6 +312,8 @@ export const editBarangData = async (field: string, id: number, value: any) => {
       await database.update(barang).set({ kode: value }).where(eq(barang.id, id))
     } else if (field === 'nama') {
       await database.update(barang).set({ nama: value }).where(eq(barang.id, id))
+    } else if (field === 'merek') {
+      await database.update(barang).set({ merek: value }).where(eq(barang.id, id))
     } else if (field === 'modal') {
       await database.update(barang).set({ modal: value }).where(eq(barang.id, id))
     } else if (field === 'stockAwal') {
@@ -364,7 +383,7 @@ export type QueryBarangTable = Awaited<ReturnType<typeof getQueryBarang>>
 
 export const getQueryBarang = async (text: string, field: string) => {
   const result = await database.query.barang.findMany({
-    where: like(field === 'kode' ? barang.kode : barang.nama, `%${text.toUpperCase()}%`),
+    where: getSearchWhereCondition(field, text),
     limit: 100,
     with: {
       unitBarang: {
@@ -410,7 +429,7 @@ export async function getBarangInventory(
     )`
     })
     .from(barang as any)
-    .where(like(field === 'kode' ? barang.kode : barang.nama, `%${search.toUpperCase()}%`))
+    .where(getSearchWhereCondition(field, search))
     .offset(offset)
     .limit(limit)
   // .as('b')

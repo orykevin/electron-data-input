@@ -24,7 +24,14 @@ interface AppUpdaterModalProps {
   currentVersion: string
 }
 
-type UpdateStatus = 'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error'
+type UpdateStatus =
+  | 'idle'
+  | 'checking'
+  | 'available'
+  | 'not-available'
+  | 'downloading'
+  | 'downloaded'
+  | 'error'
 
 export function AppUpdaterModal({ isOpen, onClose, currentVersion }: AppUpdaterModalProps) {
   const [status, setStatus] = React.useState<UpdateStatus>('idle')
@@ -176,7 +183,8 @@ export function AppUpdaterModal({ isOpen, onClose, currentVersion }: AppUpdaterM
               <div>
                 <h4 className="font-semibold text-gray-800">Aplikasi Sudah Terbaru</h4>
                 <p className="text-xs text-gray-500 mt-1">
-                  Anda menggunakan versi paling baru <span className="font-semibold text-indigo-600">v{currentVersion}</span>
+                  Anda menggunakan versi paling baru{' '}
+                  <span className="font-semibold text-indigo-600">v{currentVersion}</span>
                 </p>
               </div>
             </div>
@@ -267,7 +275,11 @@ export function AppUpdaterModal({ isOpen, onClose, currentVersion }: AppUpdaterM
               <div>
                 <h4 className="font-bold text-gray-800 text-lg">Pembaruan Siap Dipasang!</h4>
                 <p className="text-xs text-gray-500 mt-1.5 px-4">
-                  Unduhan versi baru <span className="font-semibold text-green-600">v{newVersionInfo?.version || ''}</span> telah selesai. Klik pasang untuk memuat ulang aplikasi.
+                  Unduhan versi baru{' '}
+                  <span className="font-semibold text-green-600">
+                    v{newVersionInfo?.version || ''}
+                  </span>{' '}
+                  telah selesai. Klik pasang untuk memuat ulang aplikasi.
                 </p>
               </div>
             </div>

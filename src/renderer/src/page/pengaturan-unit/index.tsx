@@ -54,7 +54,7 @@ const PengaturanUnit = () => {
         if (res) {
           setListUnit((prev) => {
             const dataIdx = prev.findIndex((data) => data.id === selected.id)
-            let prevData = [...prev]
+            const prevData = [...prev]
             prevData[dataIdx] = res
             return prevData
           })

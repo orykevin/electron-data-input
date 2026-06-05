@@ -1,1 +1,1 @@
-export const getNavigatorLanguage = (): string => navigator.language || "en-US";
+export const getNavigatorLanguage = (): string => navigator.language || 'en-US'

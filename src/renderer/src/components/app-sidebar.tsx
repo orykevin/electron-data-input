@@ -107,11 +107,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     getVer()
 
     // Listen for available updates silently
-    if (
-      window.api &&
-      window.api.updater &&
-      typeof window.api.updater.onAvailable === 'function'
-    ) {
+    if (window.api && window.api.updater && typeof window.api.updater.onAvailable === 'function') {
       const unsub = window.api.updater.onAvailable(() => {
         setHasUpdate(true)
       })

@@ -36,14 +36,16 @@ const Barang = () => {
 
   const refreshData = () => {
     setLoading(true)
-    getBarang(0, searchField, search).then((result) => {
-      setBarangs(result)
-      setSearchBarangs(result)
-      setLoading(false)
-    }).catch((err) => {
-      console.error(err)
-      setLoading(false)
-    })
+    getBarang(0, searchField, search)
+      .then((result) => {
+        setBarangs(result)
+        setSearchBarangs(result)
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error(err)
+        setLoading(false)
+      })
     setPage(0)
   }
 

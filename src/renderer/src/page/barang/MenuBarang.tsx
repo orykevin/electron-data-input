@@ -18,7 +18,14 @@ type Props = {
   loading?: boolean
 }
 
-const MenuBarang = ({ setEditable, setBarangs, setSearch, setSearchField, onRefresh, loading }: Props) => {
+const MenuBarang = ({
+  setEditable,
+  setBarangs,
+  setSearch,
+  setSearchField,
+  onRefresh,
+  loading
+}: Props) => {
   const [searchKode, setSearchKode] = useState('')
   const [searchNama, setSearchNama] = useState('')
   const debounceSearchKode = useDebounce(searchKode, 250)
@@ -80,11 +87,12 @@ const MenuBarang = ({ setEditable, setBarangs, setSearch, setSearchField, onRefr
             />
           </div>
           <div>
-            <label>Name:</label>
+            <label>Nama / Merek:</label>
             <Input
               value={searchNama}
               className="!text-xs w-[300px] max-h-8"
               onChange={handleSearchNama}
+              placeholder="Cari nama atau merek..."
             />
           </div>
         </div>

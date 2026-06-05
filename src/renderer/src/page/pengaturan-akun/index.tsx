@@ -68,7 +68,7 @@ const PengaturanAkun = () => {
       updateUser(editId, data).then(({ password, ...rest }) => {
         setListAkun((prev) => {
           const dataIdx = prev.findIndex((data) => data.id === editId)
-          let prevData = [...prev]
+          const prevData = [...prev]
           prevData[dataIdx] = rest
           return prevData
         })

@@ -1,11 +1,11 @@
-import * as React from "react";
-import { useReactGridState } from "./StateProvider";
+import * as React from 'react'
+import { useReactGridState } from './StateProvider'
 interface HiddenElementProps {
-  hiddenElementRefHandler: (hiddenFocusElement: HTMLInputElement) => void;
+  hiddenElementRefHandler: (hiddenFocusElement: HTMLInputElement) => void
 }
 
 export const HiddenElement: React.FC<HiddenElementProps> = ({ hiddenElementRefHandler }) => {
-  const { hiddenFocusElement } = useReactGridState();
+  const { hiddenFocusElement } = useReactGridState()
   return (
     <input
       className="rg-hidden-element"
@@ -14,9 +14,9 @@ export const HiddenElement: React.FC<HiddenElementProps> = ({ hiddenElementRefHa
       onBlur={(e) => {
         if (!e.relatedTarget) {
           // prevents from losing focus on hidden element on mobile devices
-          hiddenFocusElement?.focus({ preventScroll: true });
+          hiddenFocusElement?.focus({ preventScroll: true })
         }
       }}
     />
-  );
-};
+  )
+}

@@ -22,6 +22,7 @@ type Props = {
 const schema = z.object({
   kode: z.string().min(1, { message: 'Kode harus diisi' }),
   nama: z.string().min(1, { message: 'Nama harus diisi' }),
+  merek: z.string().optional().default(''),
   modal: z.number(),
   // unit: z.string(),
   listHarga: z.array(
@@ -48,13 +49,20 @@ const schema = z.object({
 
 export type FormDataBarang = z.infer<typeof schema>
 
-const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId, onSuccess }: Props) => {
+const FormBarang = ({
+  setBarangs,
+  selectedBarang,
+  type,
+  setSelectedBarangId,
+  onSuccess
+}: Props) => {
   const { data: unitData } = useAllUnit()
 
   const defaultValues: FormDataBarang = selectedBarang
     ? {
         kode: selectedBarang.kode,
         nama: selectedBarang.nama,
+        merek: selectedBarang.merek || '',
         modal: selectedBarang.modal,
         stockAwal: selectedBarang.stockAwal,
         stockMasuk: selectedBarang?.stokMasuk || 0,
@@ -65,16 +73,23 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId, onS
           hargaLain: u.hargaLain.map((h) => ({
             id: h.id,
             mode: (h.mode as 'harga_tetap' | 'persen_harga' | 'persen_modal') || 'harga_tetap',
-            nilai: h.nilai !== undefined && h.nilai !== null ? h.nilai : (h.harga || 0)
+            nilai: h.nilai !== undefined && h.nilai !== null ? h.nilai : h.harga || 0
           }))
         }))
       }
     : {
         kode: '',
         nama: '',
+        merek: '',
         modal: 0,
         stockAwal: 0,
-        listHarga: [{ unit: unitData[0]?.id.toString() || '1', harga: 0, hargaLain: [{ mode: 'harga_tetap' as const, nilai: 0 }] }],
+        listHarga: [
+          {
+            unit: unitData[0]?.id.toString() || '1',
+            harga: 0,
+            hargaLain: [{ mode: 'harga_tetap' as const, nilai: 0 }]
+          }
+        ],
         stockKeluar: 0,
         stockMasuk: 0
       }
@@ -95,7 +110,7 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId, onS
         .then((result) => {
           if (result) {
             setBarangs((prev) => {
-              let newArray = [...prev]
+              const newArray = [...prev]
               const idx = newArray.findIndex((b) => b.id === result.id)
               if (idx !== -1) {
                 newArray[idx] = {
@@ -130,7 +145,10 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId, onS
   const listHargaValues = form.watch('listHarga')
 
   const addNewHargaLain = (index) => {
-    form.setValue(`listHarga.${index}.hargaLain`, [...listHargaValues[index].hargaLain, { mode: 'harga_tetap', nilai: 0 }])
+    form.setValue(`listHarga.${index}.hargaLain`, [
+      ...listHargaValues[index].hargaLain,
+      { mode: 'harga_tetap', nilai: 0 }
+    ])
   }
 
   const removeHargaLain = (index, indexHargaLain) => {
@@ -157,6 +175,7 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId, onS
               displayError
               className="min-w-[300px] focus:border-blue-500 focus:border-2"
             />
+            <FormInput label="Merek" name="merek" displayError fieldClassName="w-[200px]" />
             <InputNumber label="Modal" name="modal" fieldClassName="max-w-[200px]" />
             <InputNumber label="Stok Awal" name="stockAwal" fieldClassName="max-w-[150px]" />
           </div>
@@ -203,7 +222,10 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId, onS
                     <div className="flex flex-col gap-2">
                       {listHargaValues[index].hargaLain.map((_fieldLain, indexLain) => {
                         return (
-                          <div className="relative flex items-end gap-2 bg-gray-50/50 p-2 border border-dashed rounded-lg" key={indexLain}>
+                          <div
+                            className="relative flex items-end gap-2 bg-gray-50/50 p-2 border border-dashed rounded-lg"
+                            key={indexLain}
+                          >
                             <SelectFormInput
                               label="Tipe Harga"
                               name={`listHarga.${index}.hargaLain.${indexLain}.mode`}
@@ -224,14 +246,20 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId, onS
                               <span className="font-semibold text-gray-400">Estimasi:</span>
                               <span className="font-mono text-blue-600 font-semibold">
                                 {(() => {
-                                  const mode = form.watch(`listHarga.${index}.hargaLain.${indexLain}.mode`)
-                                  const nilai = form.watch(`listHarga.${index}.hargaLain.${indexLain}.nilai`) || 0
+                                  const mode = form.watch(
+                                    `listHarga.${index}.hargaLain.${indexLain}.mode`
+                                  )
+                                  const nilai =
+                                    form.watch(`listHarga.${index}.hargaLain.${indexLain}.nilai`) ||
+                                    0
                                   const baseHarga = form.watch(`listHarga.${index}.harga`) || 0
                                   const modal = form.watch(`modal`) || 0
                                   let est = 0
                                   if (mode === 'harga_tetap') est = nilai
-                                  else if (mode === 'persen_harga') est = baseHarga + Math.round((baseHarga * nilai) / 100)
-                                  else if (mode === 'persen_modal') est = modal + Math.round((modal * nilai) / 100)
+                                  else if (mode === 'persen_harga')
+                                    est = baseHarga + Math.round((baseHarga * nilai) / 100)
+                                  else if (mode === 'persen_modal')
+                                    est = modal + Math.round((modal * nilai) / 100)
                                   return `Rp ${formatWithThousandSeparator(est)}`
                                 })()}
                               </span>
@@ -274,7 +302,9 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId, onS
             <Button
               type="button"
               className="mt-3"
-              onClick={() => append({ unit: '', harga: 0, hargaLain: [{ mode: 'harga_tetap', nilai: 0 }] })}
+              onClick={() =>
+                append({ unit: '', harga: 0, hargaLain: [{ mode: 'harga_tetap', nilai: 0 }] })
+              }
               disabled={listHargaValues.length === unitData.length}
             >
               {' '}

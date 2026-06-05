@@ -40,6 +40,7 @@ type Props = {
 const columnMap = {
   kode: 'Kode',
   nama: 'Nama',
+  merek: 'Merek',
   unit: 'Unit',
   modal: 'Modal',
   harga: 'Harga',
@@ -68,6 +69,7 @@ type ColumnId = keyof typeof columnMap
 const getColumns = (): Column[] => [
   { columnId: 'kode', width: 80, resizable: true, reorderable: true },
   { columnId: 'nama', width: 300, resizable: true, reorderable: true },
+  { columnId: 'merek', width: 120, resizable: true, reorderable: true },
   { columnId: 'unit', width: 80, resizable: true, reorderable: true },
   { columnId: 'modal', width: 100, resizable: true, reorderable: true },
   { columnId: 'harga', width: 100, resizable: true, reorderable: true },
@@ -83,6 +85,7 @@ const getColumns = (): Column[] => [
 const typesRow = {
   kode: 'text',
   nama: 'text',
+  merek: 'text',
   modal: 'number',
   unit: 'dropdown',
   harga: 'number',
@@ -122,6 +125,8 @@ const getDataRow = (data: DataBarangFull, columnId: ColumnId) => {
       return { text: data.kode }
     case 'nama':
       return { text: data.nama }
+    case 'merek':
+      return { text: data.merek || '' }
     case 'unit':
       return {
         selectedValue: data.selectedUnitId,
@@ -204,6 +209,7 @@ const TableBarang = ({
     // if (!data) {
     const newData = barangs.map((barang) => ({
       ...barang,
+      merek: barang.merek || '',
       hargaLainId: barang.unitBarang[0]?.hargaLain[0]?.id.toString() || '',
       hargaLainOpen: false,
       selectedUnitId: barang.unitBarang[0]?.unit?.id.toString(),
@@ -248,7 +254,7 @@ const TableBarang = ({
 
       // prevData[dataIndex][fieldName] =
       //   cell.type === 'text' ? cell.text : cell.type === 'number' ? cell.value : 'test'
-      let dataRow = prevData.find((d) => d.id === dataIndex)
+      const dataRow = prevData.find((d) => d.id === dataIndex)
       if (!dataRow) {
         // dataRow = getEmptyDataRow();
         // prevDetails.push(dataRow);
@@ -258,10 +264,14 @@ const TableBarang = ({
       // console.log(change, 'change')
       if (change.type === 'text' && typeof dataRow[fieldName] === 'string') {
         dataRow[fieldName] = change.newCell.text as never
-        if (change.columnId === 'kode' || change.columnId === 'nama') {
+        if (
+          change.columnId === 'kode' ||
+          change.columnId === 'nama' ||
+          change.columnId === 'merek'
+        ) {
           editBarangData(columnId as string, change.rowId as number, change.newCell.text as never)
           setSearchBarangs((prev) => {
-            let newPrev = [...prev]
+            const newPrev = [...prev]
             const idx = newPrev.findIndex((p) => p.id === change.rowId)
             newPrev[idx][fieldName] = change.newCell.text as never
             return newPrev
@@ -271,7 +281,7 @@ const TableBarang = ({
         if (change.columnId === 'modal' || change.columnId === 'stockAwal') {
           editBarangData(columnId as string, change.rowId as number, change.newCell.value as never)
           setSearchBarangs((prev) => {
-            let newPrev = [...prev]
+            const newPrev = [...prev]
             const idx = newPrev.findIndex((p) => p.id === change.rowId)
             newPrev[idx][fieldName] = change.newCell.value as never
             return newPrev
@@ -290,7 +300,7 @@ const TableBarang = ({
               change.newCell.value as number
             ).then((createdHarga) => {
               setSearchBarangs((prev) => {
-                let newPrev = [...prev]
+                const newPrev = [...prev]
                 newPrev[barangIdx].unitBarang[unitBarangIdx].harga = createdHarga
                 return newPrev
               })
@@ -311,7 +321,7 @@ const TableBarang = ({
             updateHargaBarang(hargaBarang.id, change.newCell.value as number).then(
               (updatedData) => {
                 setSearchBarangs((prev) => {
-                  let newPrev = [...prev]
+                  const newPrev = [...prev]
                   newPrev[barangIdx].unitBarang[unitBarangIdx].harga = updatedData
                   return newPrev
                 })

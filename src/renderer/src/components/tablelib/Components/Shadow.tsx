@@ -1,18 +1,13 @@
-import React from "react";
-import { useReactGridState } from "./StateProvider";
+import React from 'react'
+import { useReactGridState } from './StateProvider'
 
 export const Shadow: React.FC = () => {
-  const {
-    lineOrientation,
-    shadowSize,
-    shadowPosition,
-    shadowCursor,
-    cellMatrix,
-  } = useReactGridState();
+  const { lineOrientation, shadowSize, shadowPosition, shadowCursor, cellMatrix } =
+    useReactGridState()
 
-  const isVertical = lineOrientation === "vertical";
+  const isVertical = lineOrientation === 'vertical'
 
-  if (shadowPosition === -1) return null;
+  if (shadowPosition === -1) return null
 
   return (
     <div
@@ -22,8 +17,8 @@ export const Shadow: React.FC = () => {
         top: isVertical ? 0 : shadowPosition,
         left: isVertical ? shadowPosition : 0,
         width: isVertical ? shadowSize : cellMatrix.width,
-        height: isVertical ? cellMatrix.height : shadowSize,
+        height: isVertical ? cellMatrix.height : shadowSize
       }}
     />
-  );
-};
+  )
+}
