@@ -16,6 +16,7 @@ type Props = {
   selectedBarang?: DataBarang[number]
   setBarangs: React.Dispatch<SetStateAction<DataBarang | []>>
   setSelectedBarangId?: React.Dispatch<React.SetStateAction<number | null>>
+  onSuccess?: () => void
 }
 
 const schema = z.object({
@@ -47,7 +48,7 @@ const schema = z.object({
 
 export type FormDataBarang = z.infer<typeof schema>
 
-const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: Props) => {
+const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId, onSuccess }: Props) => {
   const { data: unitData } = useAllUnit()
 
   const defaultValues: FormDataBarang = selectedBarang
@@ -95,14 +96,18 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: P
           if (result) {
             setBarangs((prev) => {
               let newArray = [...prev]
-              newArray[newArray.findIndex((b) => b.id === result.id)] = {
-                ...result,
-                stokKeluar: result.stockKeluar,
-                stokMasuk: result.stockMasuk
+              const idx = newArray.findIndex((b) => b.id === result.id)
+              if (idx !== -1) {
+                newArray[idx] = {
+                  ...result,
+                  stokKeluar: result.stockKeluar,
+                  stokMasuk: result.stockMasuk
+                }
               }
               return newArray
             })
             setSelectedBarangId && setSelectedBarangId(null)
+            onSuccess && onSuccess()
           }
         })
         .catch((err) => {
@@ -113,6 +118,7 @@ const FormBarang = ({ setBarangs, selectedBarang, type, setSelectedBarangId }: P
         .then((result) => {
           if (result) {
             setBarangs((prev) => [{ ...result, stokKeluar: 0, stokMasuk: 0 }, ...prev])
+            onSuccess && onSuccess()
           }
         })
         .catch((err) => {

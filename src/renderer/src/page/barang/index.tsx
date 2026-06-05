@@ -34,6 +34,19 @@ const Barang = () => {
     setPage((prev) => prev + 1)
   }
 
+  const refreshData = () => {
+    setLoading(true)
+    getBarang(0, searchField, search).then((result) => {
+      setBarangs(result)
+      setSearchBarangs(result)
+      setLoading(false)
+    }).catch((err) => {
+      console.error(err)
+      setLoading(false)
+    })
+    setPage(0)
+  }
+
   useEffect(() => {
     if (unitData && !initialized) {
       fetchData()
@@ -41,13 +54,7 @@ const Barang = () => {
   }, [])
 
   useEffect(() => {
-    setLoading(true)
-    getBarang(0, searchField, search).then((result) => {
-      setBarangs(result)
-      setSearchBarangs(result)
-      setLoading(false)
-    })
-    setPage(0)
+    refreshData()
   }, [search, searchField])
 
   useEffect(() => {
@@ -76,6 +83,8 @@ const Barang = () => {
         setBarangs={setBarangs}
         setSearch={setSearch}
         setSearchField={setSearchField}
+        onRefresh={refreshData}
+        loading={loading}
       />
       <TableBarang
         isEditable={isEditable}
@@ -96,10 +105,11 @@ const Barang = () => {
           <div>
             {selectedBarang && (
               <FormBarang
-                setBarangs={setSearchBarangs}
+                setBarangs={setBarangs}
                 type="edit"
                 selectedBarang={selectedBarang}
                 setSelectedBarangId={setSelectedBarangId}
+                onSuccess={refreshData}
               />
             )}
           </div>

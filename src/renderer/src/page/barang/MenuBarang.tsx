@@ -4,7 +4,9 @@ import { DataBarang } from '@/dbFunctions/barang'
 import useDebounce from '@/lib/hooks/use-debounce'
 import { SetStateAction, useEffect, useState } from 'react'
 import FormBarang from './FormBarang'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 type Props = {
   setEditable?: React.Dispatch<SetStateAction<boolean>>
@@ -12,9 +14,11 @@ type Props = {
   barangs: DataBarang
   setSearch: React.Dispatch<SetStateAction<string>>
   setSearchField: React.Dispatch<SetStateAction<string>>
+  onRefresh?: () => void
+  loading?: boolean
 }
 
-const MenuBarang = ({ setEditable, setBarangs, setSearch, setSearchField }: Props) => {
+const MenuBarang = ({ setEditable, setBarangs, setSearch, setSearchField, onRefresh, loading }: Props) => {
   const [searchKode, setSearchKode] = useState('')
   const [searchNama, setSearchNama] = useState('')
   const debounceSearchKode = useDebounce(searchKode, 250)
@@ -62,7 +66,7 @@ const MenuBarang = ({ setEditable, setBarangs, setSearch, setSearchField }: Prop
             {showForm ? <ChevronUp size="24" /> : <ChevronDown size="24" />}
           </div>
         </h1>
-        {showForm && <FormBarang setBarangs={setBarangs} />}
+        {showForm && <FormBarang setBarangs={setBarangs} onSuccess={onRefresh} />}
       </div>
       <h1 className="text-2xl font-semibold pb-2 mb-2 border-b border-gray-200">Tabel list</h1>
       <div className="flex justify-between items-center">
@@ -84,7 +88,17 @@ const MenuBarang = ({ setEditable, setBarangs, setSearch, setSearchField }: Prop
             />
           </div>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={onRefresh}
+            variant="outline"
+            className="flex items-center gap-2 px-3 py-1.5 h-8 text-xs font-semibold border-gray-200 hover:border-blue-400 hover:text-blue-600 transition-all duration-200 shadow-sm active:scale-95"
+            disabled={loading}
+            type="button"
+          >
+            <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
+            Refresh
+          </Button>
           <SwitchText setState={setEditable} />
         </div>
       </div>
