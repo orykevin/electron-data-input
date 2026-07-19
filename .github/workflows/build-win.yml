@@ -35,7 +35,12 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Setup MSVC compiler (node-gyp requirement)
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Rebuild better-sqlite3 for Electron
+        env:
+          GYP_MSVS_VERSION: '2022'
         run: npx electron-rebuild -f -w better-sqlite3
 
       - name: Build Windows app
