@@ -10,7 +10,7 @@ import FormInput from '@/components/form-input'
 import useAllPelanggan from '@/store/usePelangganStore'
 
 type Props = {
-  selectedPelanggan: DataPelangganFull
+  selectedPelanggan: Partial<DataPelangganFull> & { id: number }
   setSelectedIds: React.Dispatch<React.SetStateAction<number | null>>
   setData?: React.Dispatch<React.SetStateAction<DataPelangganFull[]>>
   type?: string
@@ -22,28 +22,33 @@ const DialogUpdatePelanggan = ({ selectedPelanggan, setSelectedIds, setData, typ
       kode: selectedPelanggan?.kode || null,
       nama: selectedPelanggan?.nama || null,
       alamat: selectedPelanggan?.alamat || null,
-      deskripsi: selectedPelanggan?.deskripsi || null
+      deskripsi: selectedPelanggan?.deskripsi || null,
+      ecer: selectedPelanggan?.ecer || false
     },
     resolver: zodResolver(formSchema)
   })
 
   const { fetchData } = useAllPelanggan()
 
-  const onSubmit = async (data: { [key: string]: string | null }) => {
+  const onSubmit = async (data: { [key: string]: any }) => {
     try {
       if (type === 'add') {
         const dataForm = {
           kode: data.kode || '',
           nama: data.nama || '',
           alamat: data.alamat || '',
-          deskripsi: data.deskripsi || ''
+          deskripsi: data.deskripsi || '',
+          ecer: !!data.ecer
         }
         await createPelanggan(dataForm).then((data) => {
           setSelectedIds(data.id)
           fetchData()
         })
       } else {
-        await updatePelanggan(selectedPelanggan.id, data).then((data) => {
+        await updatePelanggan(selectedPelanggan.id, {
+          ...data,
+          ecer: !!data.ecer
+        }).then((data) => {
           setData &&
             setData((prev) => {
               const newData = [...prev]
@@ -78,6 +83,15 @@ const DialogUpdatePelanggan = ({ selectedPelanggan, setSelectedIds, setData, typ
                   </div>
                   <FormInput name="alamat" label="Alamat" />
                   <FormInput name="deskripsi" label="Deskripsi" />
+                  <div className="flex items-center gap-2 py-2">
+                    <input
+                      type="checkbox"
+                      id="ecer-edit"
+                      className="scale-125 cursor-pointer"
+                      {...form.register('ecer')}
+                    />
+                    <label htmlFor="ecer-edit" className="text-sm cursor-pointer select-none">Ecer (Pelanggan Eceran)</label>
+                  </div>
                   <Button type="submit" className="!mt-3 w-full h-10">
                     {type === 'add' ? 'Tambah Pelanggan' : 'Update Pelanggan'}
                   </Button>

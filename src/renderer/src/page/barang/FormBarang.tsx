@@ -17,6 +17,7 @@ type Props = {
   setBarangs: React.Dispatch<SetStateAction<DataBarang | []>>
   setSelectedBarangId?: React.Dispatch<React.SetStateAction<number | null>>
   onSuccess?: () => void
+  setIsDeleting?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const schema = z.object({
@@ -54,7 +55,8 @@ const FormBarang = ({
   selectedBarang,
   type,
   setSelectedBarangId,
-  onSuccess
+  onSuccess,
+  setIsDeleting
 }: Props) => {
   const { data: unitData } = useAllUnit()
 
@@ -312,9 +314,21 @@ const FormBarang = ({
             </Button>
           </div>
 
-          <Button type="submit" className="my-4 w-full mx-auto !h-10">
-            {isEdit ? 'Update Barang' : 'Input Barang'}
-          </Button>
+          <div className="flex my-4 gap-4">
+            {isEdit && (
+              <Button
+                onClick={() => setIsDeleting?.(true)}
+                type="button"
+                variant={'destructive'}
+                className="flex-1 !h-10"
+              >
+                Hapus Barang
+              </Button>
+            )}
+            <Button type="submit" className="flex-1 !h-10">
+              {isEdit ? 'Update Barang' : 'Input Barang'}
+            </Button>
+          </div>
         </form>
       </FormProvider>
     </div>

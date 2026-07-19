@@ -476,13 +476,14 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
               <FormInput name="noInvoice" label="No Invoice" fieldClassName="max-w-[150px]" />
               <SelectFormInput
                 name="pelanggan"
-                className="w-[200px]"
+                className="w-full"
                 label="Pelanggan"
                 placeholder="Pilih pelanggan"
+                searchable={true}
                 options={allPelanggan.map((p) => ({ value: p.id.toString(), label: p.nama }))}
                 additionalComponent={
                   <div>
-                    <Button className="text-xs" onClick={() => setSelectedPelanggan(0)}>
+                    <Button className="text-xs w-full" onClick={() => setSelectedPelanggan(0)}>
                       <Plus /> Tambah Pelanggan Baru
                     </Button>
                   </div>

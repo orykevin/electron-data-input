@@ -129,6 +129,7 @@ const expectedSchema: TableDef[] = [
       { name: 'nama', type: 'text', notNull: true, defaultValue: "''" },
       { name: 'deskripsi', type: 'text' },
       { name: 'alamat', type: 'text' },
+      { name: 'ecer', type: 'integer' },
       { name: 'updateAt', type: 'integer' },
       { name: 'createdAt', type: 'integer', defaultValue: '(CURRENT_TIMESTAMP)' },
       { name: 'deleted_at', type: 'integer' }

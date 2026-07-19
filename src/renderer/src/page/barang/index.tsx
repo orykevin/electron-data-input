@@ -1,10 +1,11 @@
 import TableBarang from './TableBarang'
 import MenuBarang from './MenuBarang'
 import { useEffect, useMemo, useState } from 'react'
-import { DataBarang, getBarang } from '@/dbFunctions/barang'
+import { DataBarang, deleteBarang, getBarang } from '@/dbFunctions/barang'
 import useAllUnit from '@/store/useUnitStore'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import FormBarang from './FormBarang'
+import { Button } from '@/components/ui/button'
 
 const Barang = () => {
   const [isEditable, setIsEditable] = useState(false)
@@ -13,12 +14,13 @@ const Barang = () => {
   const { data: unitData, fetchData, initialized } = useAllUnit()
   const [selectedBarangId, setSelectedBarangId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const selectedBarang = useMemo(() => {
     const barangData = searchBarangs.find((barang) => barang.id === selectedBarangId)
     const barangData2 = barangs.find((barang) => barang.id === selectedBarangId)
     return barangData || barangData2
-  }, [searchBarangs, barangs, selectedBarangId])
+  }, [searchBarangs, barangs, selectedBarangId]) as DataBarang[0] | undefined
 
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
@@ -47,6 +49,14 @@ const Barang = () => {
         setLoading(false)
       })
     setPage(0)
+  }
+
+  const deleteBarangHandler = async () => {
+    if (!selectedBarang) return
+    await deleteBarang([selectedBarang])
+    setIsDeleting(false)
+    setSelectedBarangId(null)
+    refreshData()
   }
 
   useEffect(() => {
@@ -112,8 +122,28 @@ const Barang = () => {
                 selectedBarang={selectedBarang}
                 setSelectedBarangId={setSelectedBarangId}
                 onSuccess={refreshData}
+                setIsDeleting={setIsDeleting}
               />
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isDeleting} onOpenChange={() => setIsDeleting(false)}>
+        <DialogContent>
+          <DialogHeader>Hapus Barang?</DialogHeader>
+          <div>
+            <p>
+              Apakah kamu yakin mau menghapus <br />{' '}
+              <b>{selectedBarang?.nama + ' ' + selectedBarang?.merek}</b>
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button className="flex-1" onClick={() => setIsDeleting(false)}>
+              Batal
+            </Button>
+            <Button className="flex-1" variant={'destructive'} onClick={deleteBarangHandler}>
+              Ya, Hapus
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -100,6 +100,7 @@ export const pelanggan = sqliteTable('pelanggan', {
   nama: text('nama').notNull().default(''),
   deskripsi: text('deskripsi'),
   alamat: text('alamat'),
+  ecer: int('ecer', { mode: 'boolean' }),
   ...timeStampRow
 })
 

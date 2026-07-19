@@ -1,7 +1,10 @@
 import FormInput from '@/components/form-input'
 import HeaderBase from '@/components/header-base'
 import { EditCell, EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
+import { SortableHeaderCellTemplate } from '@/components/tablelib/CellTemplates/SortableHeaderCellTemplate'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Search } from 'lucide-react'
 import {
   createPelanggan,
   deletePelanggan,
@@ -30,18 +33,22 @@ export const formSchema = z.object({
   kode: z.string(),
   nama: z.string().min(1, { message: 'Nama harus di isi' }),
   alamat: z.string(),
-  deskripsi: z.string()
+  deskripsi: z.string(),
+  ecer: z.boolean().optional().default(false)
 })
 
 export type PelanganFormData = z.infer<typeof formSchema>
 
-export type DataPelangganFull = PelangganData[number] & {}
+export type DataPelangganFull = PelangganData[number] & {
+  ecer?: boolean | null
+}
 
 const columnMap = {
   kode: 'Kode',
   nama: 'Nama',
   alamat: 'Alamat',
   deskripsi: 'Deskripsi',
+  ecer: 'Ecer',
   editBarang: ''
 }
 
@@ -52,6 +59,7 @@ const getColumns = (): Column[] => [
   { columnId: 'nama', width: 300, resizable: true, reorderable: true },
   { columnId: 'alamat', width: 500, resizable: true, reorderable: true },
   { columnId: 'deskripsi', width: 240, resizable: true, reorderable: true },
+  { columnId: 'ecer', width: 80, resizable: true, reorderable: true },
   { columnId: 'editBarang', width: 40, resizable: true, reorderable: true }
 ]
 
@@ -60,6 +68,7 @@ const typesRow = {
   nama: 'text',
   alamat: 'text',
   deskripsi: 'text',
+  ecer: 'checkbox',
   editBarang: 'edit'
 }
 
@@ -73,6 +82,8 @@ const getDataRow = (data: DataPelangganFull, columnId: ColumnId) => {
       return { text: data.alamat || '' }
     case 'deskripsi':
       return { text: data?.deskripsi || '' }
+    case 'ecer':
+      return { checked: !!data.ecer }
     case 'editBarang':
       return { text: data.id.toString(), openedId: data.id + 1, icon: 'edit' }
     default:
@@ -83,11 +94,32 @@ const getDataRow = (data: DataPelangganFull, columnId: ColumnId) => {
 const getRows = (
   data: DataPelangganFull[],
   columnsOrder: ColumnId[],
+  sortBy: ColumnId,
+  sortDirection: 'asc' | 'desc',
+  onHeaderClick: (columnId: ColumnId) => void,
   disabled?: boolean
 ): Row[] => [
   {
     rowId: 'header',
-    cells: columnsOrder.map((columnId) => ({ type: 'header', text: columnMap[columnId] }))
+    cells: columnsOrder.map((columnId) => {
+      const label = columnMap[columnId]
+      const isSortable = columnId !== 'editBarang'
+      if (isSortable) {
+        return {
+          type: 'sortableHeader',
+          text: label,
+          columnId,
+          sortBy,
+          sortDirection,
+          onHeaderClick
+        } as any
+      } else {
+        return {
+          type: 'header',
+          text: label
+        }
+      }
+    })
   },
   ...data.map<Row>((data) => ({
     rowId: data.id,
@@ -115,11 +147,15 @@ const PelangganPage = () => {
   const [selectedIds, setSelectedIds] = React.useState<number | null>(null)
   const selectedPelanggan = data.find((d) => d.id === selectedIds) || null
 
+  const [searchQuery, setSearchQuery] = React.useState('')
+  const [sortBy, setSortBy] = React.useState<ColumnId>('nama')
+  const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc')
+
   const [cellChangesIndex, setCellChangesIndex] = React.useState(() => -1)
   const [cellChanges, setCellChanges] = React.useState<CellChange[][]>(() => [])
 
   const form = useForm({
-    defaultValues: { kode: '', nama: '', alamat: '', deskripsi: '' },
+    defaultValues: { kode: '', nama: '', alamat: '', deskripsi: '', ecer: false },
     resolver: zodResolver(formSchema)
   })
 
@@ -131,18 +167,57 @@ const PelangganPage = () => {
 
   const onSubmit = async (value: PelanganFormData) => {
     console.log(value)
-    // createUser(value.username, value.password, value.isAdmin).then(({ password, ...rest }) => {
-    //   setListAkun((prev) => [...prev, rest])
-    // })
     createPelanggan(value).then(({ updateAt, deletedAt, ...res }) => {
       setData((prev) => [...prev, res])
     })
     form.reset()
   }
 
+  const handleHeaderClick = (columnId: ColumnId) => {
+    if (columnId === 'editBarang') return
+    if (sortBy === columnId) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortBy(columnId)
+      setSortDirection('asc')
+    }
+  }
+
+  const filteredData = React.useMemo(() => {
+    if (!searchQuery) return data
+    const query = searchQuery.toLowerCase()
+    return data.filter((item) => {
+      const kodeMatch = item.kode ? item.kode.toLowerCase().includes(query) : false
+      const namaMatch = item.nama ? item.nama.toLowerCase().includes(query) : false
+      return kodeMatch || namaMatch
+    })
+  }, [data, searchQuery])
+
+  const sortedData = React.useMemo(() => {
+    return [...filteredData].sort((a, b) => {
+      const valA = a[sortBy]
+      const valB = b[sortBy]
+
+      if (typeof valA === 'boolean' && typeof valB === 'boolean') {
+        const numA = valA ? 1 : 0
+        const numB = valB ? 1 : 0
+        return sortDirection === 'asc' ? numA - numB : numB - numA
+      }
+
+      const strA = String(valA ?? '').toLowerCase()
+      const strB = String(valB ?? '').toLowerCase()
+      if (strA < strB) return sortDirection === 'asc' ? -1 : 1
+      if (strA > strB) return sortDirection === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [filteredData, sortBy, sortDirection])
+
   const rows = getRows(
-    data,
-    columns.map((c) => c.columnId as ColumnId)
+    sortedData,
+    columns.map((c) => c.columnId as ColumnId),
+    sortBy,
+    sortDirection,
+    handleHeaderClick
   )
 
   const applyNewValue = (
@@ -165,6 +240,11 @@ const PelangganPage = () => {
       if (change.type === 'text') {
         dataRow[fieldName] = change.newCell.text as never
         updatePelanggan(dataRow.id, { [fieldName]: change.newCell.text }).then((res) => {
+          setData((prev) => prev.map((d) => (d.id === dataIndex ? res : d)))
+        })
+      } else if (change.type === 'checkbox') {
+        dataRow[fieldName] = change.newCell.checked as never
+        updatePelanggan(dataRow.id, { [fieldName]: change.newCell.checked }).then((res) => {
           setData((prev) => prev.map((d) => (d.id === dataIndex ? res : d)))
         })
       } else if (change.type === 'edit') {
@@ -308,13 +388,35 @@ const PelangganPage = () => {
             </div>
             <FormInput name="alamat" label="Alamat" />
             <FormInput name="deskripsi" label="Deskripsi" />
+            <div className="flex items-center gap-2 py-2">
+              <input
+                type="checkbox"
+                id="ecer"
+                className="scale-125 cursor-pointer"
+                {...form.register('ecer')}
+              />
+              <label htmlFor="ecer" className="text-sm cursor-pointer select-none">Ecer (Pelanggan Eceran)</label>
+            </div>
             <Button type="submit" className="!mt-3 w-full h-10">
               Buat Pelanggan
             </Button>
           </div>
         </form>
       </FormProvider>
-      <HeaderBase className="mt-6">List Pelanggan</HeaderBase>
+
+      <div className="flex justify-between items-center mt-6 mb-3">
+        <HeaderBase className="!mt-0">List Pelanggan</HeaderBase>
+        <div className="relative max-w-xs w-full">
+          <Input
+            placeholder="Cari Kode atau Nama..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8 h-9"
+          />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+        </div>
+      </div>
+
       <ReactGrid
         rows={rows}
         columns={columns}
@@ -327,7 +429,8 @@ const PelangganPage = () => {
         enableColumnSelection
         stickyTopRows={1}
         customCellTemplates={{
-          edit: new EditTemplateCell()
+          edit: new EditTemplateCell(),
+          sortableHeader: new SortableHeaderCellTemplate()
         }}
       />
       {selectedPelanggan && (

@@ -466,13 +466,14 @@ const PembelianPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
               <FormInput name="noInvoice" label="No Invoice" fieldClassName="max-w-[150px]" />
               <SelectFormInput
                 name="supplier"
-                className="w-[200px]"
+                className="w-full"
                 label="Supplier"
                 placeholder="Pilih supplier"
+                searchable={true}
                 options={allSupplier.map((p) => ({ value: p.id.toString(), label: p.nama }))}
                 additionalComponent={
                   <div>
-                    <Button className="text-xs" onClick={() => setSelectedSupplier(0)}>
+                    <Button className="text-xs w-full" onClick={() => setSelectedSupplier(0)}>
                       <Plus /> Tambah Supplier Baru
                     </Button>
                   </div>

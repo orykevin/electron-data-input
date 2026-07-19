@@ -1,7 +1,9 @@
 import FormInput from '@/components/form-input'
 import HeaderBase from '@/components/header-base'
 import { EditCell, EditTemplateCell } from '@/components/tablelib/CellTemplates/EditTemplate'
+import { SortableHeaderCellTemplate } from '@/components/tablelib/CellTemplates/SortableHeaderCellTemplate'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -14,6 +16,7 @@ import {
   Row,
   SelectionMode
 } from '@silevis/reactgrid'
+import { Search } from 'lucide-react'
 import React, { useEffect } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import z from 'zod'
@@ -82,10 +85,35 @@ const getDataRow = (data: DataSupplierFull, columnId: ColumnId) => {
   }
 }
 
-const getRows = (data: DataSupplierFull[], columnsOrder: ColumnId[], disabled?: boolean): Row[] => [
+const getRows = (
+  data: DataSupplierFull[],
+  columnsOrder: ColumnId[],
+  sortBy: ColumnId,
+  sortDirection: 'asc' | 'desc',
+  onHeaderClick: (columnId: ColumnId) => void,
+  disabled?: boolean
+): Row[] => [
   {
     rowId: 'header',
-    cells: columnsOrder.map((columnId) => ({ type: 'header', text: columnMap[columnId] }))
+    cells: columnsOrder.map((columnId) => {
+      const label = columnMap[columnId]
+      const isSortable = columnId !== 'editBarang'
+      if (isSortable) {
+        return {
+          type: 'sortableHeader',
+          text: label,
+          columnId,
+          sortBy,
+          sortDirection,
+          onHeaderClick
+        } as any
+      } else {
+        return {
+          type: 'header',
+          text: label
+        }
+      }
+    })
   },
   ...data.map<Row>((data) => ({
     rowId: data.id,
@@ -116,6 +144,10 @@ const SupplierPage = () => {
   const [cellChangesIndex, setCellChangesIndex] = React.useState(() => -1)
   const [cellChanges, setCellChanges] = React.useState<CellChange[][]>(() => [])
 
+  const [searchQuery, setSearchQuery] = React.useState('')
+  const [sortBy, setSortBy] = React.useState<ColumnId>('nama')
+  const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc')
+
   const form = useForm({
     defaultValues: { kode: '', nama: '', alamat: '', deskripsi: '' },
     resolver: zodResolver(formSchema)
@@ -131,6 +163,40 @@ const SupplierPage = () => {
     fetchData()
   }, [])
 
+  const handleHeaderClick = (columnId: ColumnId) => {
+    if (sortBy === columnId) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortBy(columnId)
+      setSortDirection('asc')
+    }
+  }
+
+  const filteredData = React.useMemo(() => {
+    if (!searchQuery.trim()) return data
+    const q = searchQuery.toLowerCase()
+    return data.filter(
+      (d) =>
+        (d.kode && d.kode.toLowerCase().includes(q)) ||
+        (d.nama && d.nama.toLowerCase().includes(q))
+    )
+  }, [data, searchQuery])
+
+  const sortedData = React.useMemo(() => {
+    return [...filteredData].sort((a, b) => {
+      const valA = a[sortBy]
+      const valB = b[sortBy]
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return sortDirection === 'asc' ? valA - valB : valB - valA
+      }
+      const strA = String(valA || '').toLowerCase()
+      const strB = String(valB || '').toLowerCase()
+      if (strA < strB) return sortDirection === 'asc' ? -1 : 1
+      if (strA > strB) return sortDirection === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [filteredData, sortBy, sortDirection])
+
   const onSubmit = async (value: PelanganFormData) => {
     console.log(value)
     // createUser(value.username, value.password, value.isAdmin).then(({ password, ...rest }) => {
@@ -143,8 +209,11 @@ const SupplierPage = () => {
   }
 
   const rows = getRows(
-    data,
-    columns.map((c) => c.columnId as ColumnId)
+    sortedData,
+    columns.map((c) => c.columnId as ColumnId),
+    sortBy,
+    sortDirection,
+    handleHeaderClick
   )
 
   const applyNewValue = (
@@ -310,7 +379,18 @@ const SupplierPage = () => {
           </div>
         </form>
       </FormProvider>
-      <HeaderBase className="mt-6">List supplier</HeaderBase>
+      <div className="flex justify-between items-center mt-6 mb-3">
+        <HeaderBase className="!mt-0">List supplier</HeaderBase>
+        <div className="relative max-w-xs w-full">
+          <Input
+            placeholder="Cari Kode atau Nama..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8 h-9"
+          />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+        </div>
+      </div>
       <ReactGrid
         rows={rows}
         columns={columns}
@@ -323,7 +403,8 @@ const SupplierPage = () => {
         enableColumnSelection
         stickyTopRows={1}
         customCellTemplates={{
-          edit: new EditTemplateCell()
+          edit: new EditTemplateCell(),
+          sortableHeader: new SortableHeaderCellTemplate()
         }}
       />
       {selectedSupplier && (

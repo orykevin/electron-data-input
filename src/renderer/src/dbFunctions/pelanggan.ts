@@ -33,7 +33,7 @@ export const deletePelanggan = async (ids: number[]) => {
 
 export const updatePelanggan = async (
   id: number,
-  data: { kode?: string; nama?: string; alamat?: string; deskripsi?: string }
+  data: { kode?: string; nama?: string; alamat?: string; deskripsi?: string; ecer?: boolean | null }
 ) => {
   try {
     const result = await database

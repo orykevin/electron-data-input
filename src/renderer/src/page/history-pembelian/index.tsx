@@ -3,13 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { LinkButtonIcon } from '@/components/ui/link-button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
 import { AllPembelianType, deletePembelian, getAllPembelian } from '@/dbFunctions/pembelian'
 import { useToast } from '@/lib/hooks/use-toast'
 import { getFirstDateOfMonth, getLastDateOfMonth } from '@/lib/utils'
@@ -19,6 +12,7 @@ import { getLocalTimeZone, now } from '@internationalized/date'
 import { Delete, Pencil } from 'lucide-react'
 import React, { useEffect } from 'react'
 import { DateValue } from 'react-aria-components'
+import { SearchableSelect } from '@/components/searchable-select'
 
 type FilterProps = {
   date: RangeValue<DateValue> | null
@@ -93,20 +87,15 @@ const HistoriPembelian = () => {
               value={filter?.date || undefined}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 flex flex-col">
             <Label className="text-xs">Pilih supplier</Label>
-            <Select onValueChange={(value) => setFilter({ ...filter, supplier: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih supplier" />
-              </SelectTrigger>
-              <SelectContent>
-                {allSupplier.map((supplier) => (
-                  <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                    {supplier.nama}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              className="w-[400px]"
+              placeholder="Pilih supplier"
+              value={filter.supplier}
+              onChange={(value) => setFilter({ ...filter, supplier: value })}
+              options={allSupplier.map((s) => ({ value: s.id.toString(), label: s.nama }))}
+            />
           </div>
           <Button onClick={clearFilter}>Clear</Button>
         </div>

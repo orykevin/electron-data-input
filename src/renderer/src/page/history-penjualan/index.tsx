@@ -3,13 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { LinkButtonIcon } from '@/components/ui/link-button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
 import { AllPenjualanType, deletePenjualan, getAllPenjualan } from '@/dbFunctions/penjualan'
 import { useToast } from '@/lib/hooks/use-toast'
 import { getFirstDateOfMonth, getLastDateOfMonth } from '@/lib/utils'
@@ -19,6 +12,7 @@ import { getLocalTimeZone, now } from '@internationalized/date'
 import { Delete, Pencil } from 'lucide-react'
 import React, { useEffect } from 'react'
 import { DateValue } from 'react-aria-components'
+import { SearchableSelect } from '@/components/searchable-select'
 
 type FilterProps = {
   date: RangeValue<DateValue> | null
@@ -93,20 +87,15 @@ const HistoriPenjualan = () => {
               value={filter?.date || undefined}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 flex flex-col">
             <Label className="text-xs">Pilih pelanggan</Label>
-            <Select onValueChange={(value) => setFilter({ ...filter, pelanggan: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih pelanggan" />
-              </SelectTrigger>
-              <SelectContent>
-                {allPelanggan.map((pelanggan) => (
-                  <SelectItem key={pelanggan.id} value={pelanggan.id.toString()}>
-                    {pelanggan.nama}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              className="w-[400px]"
+              placeholder="Pilih pelanggan"
+              value={filter.pelanggan}
+              onChange={(value) => setFilter({ ...filter, pelanggan: value })}
+              options={allPelanggan.map((p) => ({ value: p.id.toString(), label: p.nama }))}
+            />
           </div>
           <Button onClick={clearFilter}>Clear</Button>
         </div>
