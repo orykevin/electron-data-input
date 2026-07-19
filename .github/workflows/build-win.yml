@@ -30,6 +30,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Setup Python (needed by node-gyp)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Rebuild better-sqlite3 for Electron
+        run: npx --yes @electron/rebuild -f -w better-sqlite3 -o better-sqlite3
+        env:
+          GYP_MSVS_VERSION: '2022'
 
       - name: Build Windows app
         env:
