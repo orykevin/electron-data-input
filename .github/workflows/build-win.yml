@@ -3,8 +3,8 @@ name: Build Windows EXE
 
 on:
   push:
-    branches: [main]        # triggers on every push to main
-  workflow_dispatch:         # allows manual trigger from GitHub UI
+    branches: [main] # triggers on every push to main
+  workflow_dispatch: # allows manual trigger from GitHub UI
 
 jobs:
   build-windows:
@@ -27,28 +27,21 @@ jobs:
           node-version: 18
           cache: 'pnpm'
 
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Setup Python 3.11 (needed by node-gyp)
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install Visual Studio Build Tools (required by node-gyp)
-        shell: pwsh
-        run: |
-          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --quiet" -y
-          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+      - name: Setup Visual Studio Build Tools
+        uses: microsoft/setup-msbuild@v2
 
-      - name: Setup MSVC developer command prompt
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Rebuild native modules for Electron
+      - name: Rebuild better-sqlite3 for Electron
+        run: npx electron-rebuild -f -w better-sqlite3 -o better-sqlite3
         env:
-          GYP_MSVS_VERSION: '2022'
-          DEBUG: 'electron-rebuild'
-        run: npx electron-rebuild -f
+          npm_config_msvs_version: '2022'
 
       - name: Build Windows app
         env:
@@ -59,5 +52,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pos-system-windows
-          path: dist/*.exe          # your installer ends up here
+          path: dist/*.exe # your installer ends up here
           retention-days: 30
