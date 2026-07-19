@@ -141,6 +141,8 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   const pajak = form.watch('pajak')
   const diskon = form.watch('diskon')
 
+  console.log(allPelanggan[Number(pelanggan)])
+
   useEffect(() => {
     if (isNaN(pajak)) form.setValue('pajak', 0)
   }, [pajak])
@@ -161,8 +163,43 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
   useEffect(() => {
     if (pelanggan) {
       const pelangganData = allPelanggan.find((unit) => unit.id.toString() === pelanggan)
-      if (pelangganData && pelangganData.alamat) {
-        form.setValue('alamat', pelangganData.alamat)
+      if (pelangganData) {
+        if (pelangganData.alamat) {
+          form.setValue('alamat', pelangganData.alamat)
+        }
+
+        setListBarang((prev) => {
+          return prev.map((item) => {
+            const allUnits = item.unitBarang?.barang?.unitBarang || []
+            const selectedUnitConfig =
+              allUnits.find((u: any) => u.id.toString() === item.unitSelected) || item.unitBarang
+
+            if (pelangganData.ecer) {
+              const ecerHargaLain = selectedUnitConfig?.hargaLain?.find(
+                (h: any) => h.mode === 'ecer'
+              )
+              if (ecerHargaLain) {
+                return {
+                  ...item,
+                  harga: ecerHargaLain.nilai,
+                  hargaLainSelected: ecerHargaLain.id.toString()
+                }
+              }
+            } else {
+              const ecerHargaLain = selectedUnitConfig?.hargaLain?.find(
+                (h: any) => h.mode === 'ecer'
+              )
+              if (ecerHargaLain && item.hargaLainSelected === ecerHargaLain.id.toString()) {
+                return {
+                  ...item,
+                  harga: selectedUnitConfig?.harga?.harga || 0,
+                  hargaLainSelected: undefined
+                }
+              }
+            }
+            return item
+          })
+        })
       }
     }
   }, [pelanggan])
@@ -343,10 +380,27 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
         ) {
           dataRow[fieldName] = change.newCell.selectedValue as never
           dataRow.unitSelected = change.newCell.selectedValue as never
-          dataRow.harga =
-            dataRow.unitBarang?.barang?.unitBarang.find(
-              (u) => u.id.toString() === change.newCell.selectedValue
-            )?.harga?.harga || dataRow.harga
+
+          const newUnitSelected = dataRow.unitBarang?.barang?.unitBarang.find(
+            (u) => u.id.toString() === change.newCell.selectedValue
+          )
+
+          let selectedPrice = newUnitSelected?.harga?.harga || dataRow.harga
+          let selectedHargaLainId = undefined as undefined | string
+
+          // If customer is ecer, check if this unit has an ecer hargaLain
+          const pelangganId = form.getValues('pelanggan')
+          const activePelanggan = allPelanggan.find((p) => p.id.toString() === pelangganId)
+          if (activePelanggan?.ecer) {
+            const ecerHargaLain = newUnitSelected?.hargaLain?.find((h) => h.mode === 'ecer')
+            if (ecerHargaLain) {
+              selectedPrice = ecerHargaLain.nilai
+              selectedHargaLainId = ecerHargaLain.id.toString()
+            }
+          }
+
+          dataRow.harga = selectedPrice as never
+          dataRow.hargaLainSelected = selectedHargaLainId as never
         }
         // dataRow[fieldName] = change.newCell.inputValue as never
         // CHANGED: set the isOpen property to the value received.
@@ -477,7 +531,11 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
               <SelectFormInput
                 name="pelanggan"
                 className="w-full"
-                label="Pelanggan"
+                label={
+                  allPelanggan.find((unit) => unit.id.toString() === pelanggan)?.ecer
+                    ? 'Pelanggan (Ecer)'
+                    : 'Pelanggan'
+                }
                 placeholder="Pilih pelanggan"
                 searchable={true}
                 options={allPelanggan.map((p) => ({ value: p.id.toString(), label: p.nama }))}
@@ -597,6 +655,7 @@ const PenjualanPage = ({ mode }: { mode: 'baru' | 'edit' }) => {
         openBarang={openBarang}
         setOpenBarang={setOpenBarang}
         selectedIds={selectedIds}
+        isEcerPelanggan={!!allPelanggan.find((p) => p.id.toString() === pelanggan)?.ecer}
       />
       {selectedPelanggan === 0 && (
         <DialogUpdatePelanggan

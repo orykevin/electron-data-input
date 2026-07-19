@@ -113,6 +113,8 @@ const getDataRow = (data: DataBarangFull, columnId: ColumnId) => {
     } else if (h.mode === 'persen_modal') {
       const sign = h.nilai >= 0 ? '+' : ''
       label = `Rp ${formattedHarga} (${sign}${h.nilai}% dari Modal)`
+    } else if (h.mode === 'ecer') {
+      label = `Rp ${formattedHarga} (Ecer)`
     }
     return {
       label,

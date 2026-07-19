@@ -59,13 +59,13 @@ export default function DateFormInput({ label, disabled, defaultValue, name }: P
 
   return (
     <DatePicker
-      className="space-y-2"
+      className="space-y-2 min-w-max"
       isDisabled={disabled}
       defaultValue={defaultValue}
       onChange={handleChange}
       value={dateValue()}
     >
-      <Label className="text-foreground">{label}</Label>
+      <Label className="text-foreground min-w-max">{label}</Label>
       <div className="flex">
         <Group className="inline-flex h-9 w-full items-center overflow-hidden whitespace-nowrap rounded-lg border border-input bg-background px-3 py-2 pe-9 text-sm shadow-sm shadow-black/5 transition-shadow data-[focus-within]:border-ring data-[disabled]:opacity-50 data-[focus-within]:outline-none data-[focus-within]:ring-[3px] data-[focus-within]:ring-ring/20  focus-within:!border-blue-500 focus-within:border-2">
           <DateInput>

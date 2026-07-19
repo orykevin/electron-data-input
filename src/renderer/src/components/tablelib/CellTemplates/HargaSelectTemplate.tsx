@@ -145,7 +145,7 @@ const HargaSelectInput: React.FC<HargaSelectInputProps> = ({ cell, onCellChanged
   // Extra Prices
   const calculatedHargaLainList = hargaLainList.map((u: any) => {
     let val = 0
-    if (u.mode === 'harga_tetap') {
+    if (u.mode === 'harga_tetap' || u.mode === 'ecer') {
       val = u.nilai
     } else if (u.mode === 'persen_harga') {
       val = baseHarga + Math.round((baseHarga * u.nilai) / 100)
@@ -162,6 +162,8 @@ const HargaSelectInput: React.FC<HargaSelectInputProps> = ({ cell, onCellChanged
     } else if (u.mode === 'persen_modal') {
       const sign = u.nilai >= 0 ? '+' : ''
       suffix = `(${sign}${u.nilai}% dari Modal)`
+    } else if (u.mode === 'ecer') {
+      suffix = '(Ecer)'
     }
 
     return {

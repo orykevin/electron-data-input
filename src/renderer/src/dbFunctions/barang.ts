@@ -101,7 +101,7 @@ export const createBarang = async (data: FormDataBarang) => {
             .filter((hl) => hl.nilai !== 0)
             .map(async (hl) => {
               let effectiveHarga = 0
-              if (hl.mode === 'harga_tetap') {
+              if (hl.mode === 'harga_tetap' || hl.mode === 'ecer') {
                 effectiveHarga = hl.nilai
               } else if (hl.mode === 'persen_harga') {
                 effectiveHarga = h.harga + Math.round((h.harga * hl.nilai) / 100)
@@ -220,7 +220,7 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
             const eqHargaLainId = previousHL ? eq(hargaLain.id, previousHL.id) : null
 
             let effectiveHarga = 0
-            if (hl.mode === 'harga_tetap') {
+            if (hl.mode === 'harga_tetap' || hl.mode === 'ecer') {
               effectiveHarga = hl.nilai
             } else if (hl.mode === 'persen_harga') {
               effectiveHarga = ub.harga + Math.round((ub.harga * hl.nilai) / 100)
@@ -272,7 +272,7 @@ export const updateBarang = async (data: FormDataBarang, selectedBarang: DataBar
             .filter((hl) => hl.nilai !== 0)
             .map(async (hl) => {
               let effectiveHarga = 0
-              if (hl.mode === 'harga_tetap') {
+              if (hl.mode === 'harga_tetap' || hl.mode === 'ecer') {
                 effectiveHarga = hl.nilai
               } else if (hl.mode === 'persen_harga') {
                 effectiveHarga = ub.harga + Math.round((ub.harga * hl.nilai) / 100)

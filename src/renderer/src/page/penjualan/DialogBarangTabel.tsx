@@ -17,6 +17,7 @@ type Props = {
     React.SetStateAction<{ mode: 'kode' | 'nama'; text: string } | null>
   >
   selectedIds: number | null
+  isEcerPelanggan?: boolean
 }
 
 type DataFullBarang = DataBarang[number] & {
@@ -83,7 +84,7 @@ const getDataRow = (data: DataFullBarang, columnId: ColumnId) => {
         values:
           data.unitBarang[selectedIndex]?.hargaLain?.map((u) => {
             let effectiveHarga = 0
-            if (u.mode === 'harga_tetap') {
+            if (u.mode === 'harga_tetap' || u.mode === 'ecer') {
               effectiveHarga = u.nilai
             } else if (u.mode === 'persen_harga') {
               effectiveHarga = baseHarga + Math.round((baseHarga * u.nilai) / 100)
@@ -101,6 +102,8 @@ const getDataRow = (data: DataFullBarang, columnId: ColumnId) => {
             } else if (u.mode === 'persen_modal') {
               const sign = u.nilai >= 0 ? '+' : ''
               label = `Rp ${formattedHarga} (${sign}${u.nilai}% dari Modal)`
+            } else if (u.mode === 'ecer') {
+              label = `Rp ${formattedHarga} (Ecer)`
             }
 
             return {
@@ -215,7 +218,8 @@ const DialogBarangTabel = ({
   setListBarang,
   openBarang,
   setOpenBarang,
-  selectedIds
+  selectedIds,
+  isEcerPelanggan = false
 }: Props) => {
   const [data, setData] = useState<DataFullBarang[]>([])
   const [mode, setMode] = useState<'kode' | 'nama' | null>(null)
@@ -292,16 +296,23 @@ const DialogBarangTabel = ({
         (d) => d.id.toString() === dataSelected.selectedUnit
       )
       const unitBarang = dataSelected.unitBarang[unitBarangIdx]
-      const hargaLainObj =
+      let hargaLainObj =
         change.type === 'dropdown' && change.columnId === 'hargaLain'
           ? unitBarang.hargaLain.find((d) => d.id.toString() === change.newCell.selectedValue)
           : null
+
+      if (!hargaLainObj && isEcerPelanggan) {
+        const ecerHargaLain = unitBarang?.hargaLain?.find((h) => h.mode === 'ecer')
+        if (ecerHargaLain) {
+          hargaLainObj = ecerHargaLain
+        }
+      }
 
       let calculatedHarga = unitBarang?.harga?.harga || 0
       if (hargaLainObj) {
         const baseHarga = unitBarang?.harga?.harga || 0
         const modal = dataSelected.modal || 0
-        if (hargaLainObj.mode === 'harga_tetap') {
+        if (hargaLainObj.mode === 'harga_tetap' || hargaLainObj.mode === 'ecer') {
           calculatedHarga = hargaLainObj.nilai
         } else if (hargaLainObj.mode === 'persen_harga') {
           calculatedHarga = baseHarga + Math.round((baseHarga * hargaLainObj.nilai) / 100)
@@ -330,7 +341,8 @@ const DialogBarangTabel = ({
               },
               namaBarang: dataSelected.nama,
               unitSelected: dataSelected.selectedUnit || '',
-              harga: calculatedHarga
+              harga: calculatedHarga,
+              hargaLainSelected: hargaLainObj?.id?.toString() || undefined
             }
           }
           return listData
@@ -349,7 +361,7 @@ const DialogBarangTabel = ({
             },
             unitSelected: unitBarang?.id?.toString() || '',
             jumlah: 1,
-            hargaLainSelected: undefined,
+            hargaLainSelected: hargaLainObj?.id?.toString() || undefined,
             isHargaLainOpen: false,
             isUnitSelectOpen: false,
             createdAt: new Date(),

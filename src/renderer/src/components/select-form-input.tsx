@@ -72,7 +72,7 @@ export const SelectFormInput = ({
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent className="bg-black !h-[500px]">
+        <SelectContent className="bg-white">
           {options.map((opt) => {
             return (
               <SelectItem key={opt.value} value={opt.value}>

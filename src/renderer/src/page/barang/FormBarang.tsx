@@ -33,7 +33,7 @@ const schema = z.object({
       hargaLain: z.array(
         z.object({
           id: z.number().optional(),
-          mode: z.enum(['harga_tetap', 'persen_harga', 'persen_modal']),
+          mode: z.enum(['harga_tetap', 'persen_harga', 'persen_modal', 'ecer']),
           nilai: z.number()
         })
       )
@@ -74,7 +74,7 @@ const FormBarang = ({
           harga: u.harga?.harga | 0,
           hargaLain: u.hargaLain.map((h) => ({
             id: h.id,
-            mode: (h.mode as 'harga_tetap' | 'persen_harga' | 'persen_modal') || 'harga_tetap',
+            mode: (h.mode as 'harga_tetap' | 'persen_harga' | 'persen_modal' | 'ecer') || 'harga_tetap',
             nilai: h.nilai !== undefined && h.nilai !== null ? h.nilai : h.harga || 0
           }))
         }))
@@ -236,7 +236,8 @@ const FormBarang = ({
                               options={[
                                 { value: 'harga_tetap', label: 'Harga Tetap' },
                                 { value: 'persen_harga', label: '% dari Harga' },
-                                { value: 'persen_modal', label: '% dari Modal' }
+                                { value: 'persen_modal', label: '% dari Modal' },
+                                { value: 'ecer', label: 'Ecer' }
                               ]}
                             />
                             <InputNumber
@@ -257,7 +258,7 @@ const FormBarang = ({
                                   const baseHarga = form.watch(`listHarga.${index}.harga`) || 0
                                   const modal = form.watch(`modal`) || 0
                                   let est = 0
-                                  if (mode === 'harga_tetap') est = nilai
+                                  if (mode === 'harga_tetap' || mode === 'ecer') est = nilai
                                   else if (mode === 'persen_harga')
                                     est = baseHarga + Math.round((baseHarga * nilai) / 100)
                                   else if (mode === 'persen_modal')
