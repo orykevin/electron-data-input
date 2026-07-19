@@ -27,20 +27,27 @@ jobs:
           node-version: 18
           cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install
-
       - name: Setup Python 3.11 (needed by node-gyp)
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Setup MSVC compiler (node-gyp requirement)
+      - name: Install Visual Studio Build Tools (required by node-gyp)
+        shell: pwsh
+        run: |
+          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --quiet" -y
+          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+
+      - name: Setup MSVC developer command prompt
         uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Rebuild native modules for Electron
         env:
           GYP_MSVS_VERSION: '2022'
+          DEBUG: 'electron-rebuild'
         run: npx electron-rebuild -f
 
       - name: Build Windows app
