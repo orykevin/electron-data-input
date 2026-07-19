@@ -35,13 +35,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Setup Visual Studio Build Tools
-        uses: microsoft/setup-msbuild@v2
+      - name: Setup MSVC Developer Environment
+        uses: ilammy/msvc-dev-cmd@v1
 
       - name: Rebuild better-sqlite3 for Electron
         run: npx electron-rebuild -f -w better-sqlite3 -o better-sqlite3
         env:
-          npm_config_msvs_version: '2022'
+          GYP_MSVS_VERSION: '2022'
 
       - name: Build Windows app
         env:
