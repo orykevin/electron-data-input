@@ -42,7 +42,7 @@ jobs:
 
       - name: Build Windows app
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm build:publish
 
       - name: Upload EXE artifact
